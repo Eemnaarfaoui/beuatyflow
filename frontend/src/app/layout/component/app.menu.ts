@@ -68,6 +68,12 @@ export class AppMenu {
                     },
                 ]
             },
+            //
+            //####################################################################
+            // DO NOT DELETE THIS IT WILL BE NEEDED FOR THE UIKIT PAGE //
+            //####################################################################
+            //
+    
             // {
             //     label: 'UI Components',
             //     items: [
