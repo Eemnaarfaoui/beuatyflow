@@ -128,7 +128,7 @@ README.md     -> Setup and installation guide
   - Reusable components under `src/app/ui-kit/`
 
 - **Sidebar Menu:**
-  - Managed from `src/app/app.menu.ts`
+  - Managed from `src/app/layout/component/app.menu.ts`
 
 ### Backend (Python Flask)
 
