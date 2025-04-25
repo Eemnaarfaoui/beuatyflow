@@ -56,6 +56,7 @@ The stack used includes:
 
 4. **Run the Flask backend:**
    ```bash
+   .venv\Scripts\activate
    python run.py
    ```
    Backend will start running at [http://localhost:5000](http://localhost:5000).
