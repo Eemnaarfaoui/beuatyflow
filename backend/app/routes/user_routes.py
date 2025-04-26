@@ -1,4 +1,8 @@
-from flask import request, jsonify
+import random
+import string
+import smtplib
+from email.mime.text import MIMEText
+from flask import current_app, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId, errors
 from flask_bcrypt import Bcrypt
@@ -41,10 +45,28 @@ def init_user_routes(app):
         if users.find_one({'email': data['email']}):
             return jsonify({"error": "User already exists"}), 400
 
-        hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-        user = {"email": data['email'], "password": hashed_password, "role": data.get("role", "user"), "pages": data['pages']}
+        # 1. Generate a random password
+        generated_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+
+        # 2. Hash it
+        hashed_password = bcrypt.generate_password_hash(generated_password).decode('utf-8')
+
+        # 3. Insert new user into database
+        user = {
+            "email": data['email'],
+            "password": hashed_password,
+            "role": data.get("role", "user"),
+            "pages": data['pages']
+        }
         users.insert_one(user)
-        return jsonify({"message": "User created by admin"}), 201
+
+        # 4. Send email to the new user
+        try:
+            send_email_to_user(data['email'], generated_password)
+        except Exception as e:
+            return jsonify({"error": "User created but failed to send email", "details": str(e)}), 500
+
+        return jsonify({"message": "User created and email sent"}), 201
 
     # ADMIN: Update User (no password)
     @app.route('/api/users/<id>', methods=['PUT'])
@@ -81,6 +103,7 @@ def init_user_routes(app):
 
         if result.deleted_count == 0:
             return jsonify({"error": "User not found"}), 404
+
         return jsonify({"message": "User deleted successfully"}), 200
 
     # ADMIN: Get All Users
@@ -113,6 +136,7 @@ def init_user_routes(app):
 
         if not user:
             return jsonify({"error": "User not found"}), 404
+
         user["_id"] = str(user["_id"])
         del user["password"]
         return jsonify(user), 200
@@ -128,7 +152,7 @@ def init_user_routes(app):
         del user['password']
         return jsonify(user), 200
 
-    # USER: Edit Own Profile (no role)
+    # USER: Edit Own Profile (no role change allowed)
     @app.route('/api/users/me', methods=['PUT'])
     @jwt_required()
     def edit_my_profile():
@@ -141,3 +165,35 @@ def init_user_routes(app):
         except errors.InvalidId:
             return jsonify({"error": "Invalid user ID"}), 400
         return jsonify({"message": "Profile updated"}), 200
+
+# Helper: Send email function
+def send_email_to_user(receiver_email, generated_password):
+    sender_email = "beauty.flow2025@gmail.com"  # Put your sender email
+    sender_password = "nmhs sxxc bkpu hzum"  # Use an app password, not real login
+
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+
+    subject = "Your BeautyFlow Account Password"
+    body = f"""
+    Welcome to BeautyFlow!
+
+    Your account has been created.
+    Email: {receiver_email}
+    Password: {generated_password}
+
+    Please login and change your password immediately.
+
+    Thank you!
+    """
+
+    message = MIMEText(body)
+    message["Subject"] = subject
+    message["From"] = sender_email
+    message["To"] = receiver_email
+
+    server = smtplib.SMTP(smtp_server, smtp_port)
+    server.starttls()
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, receiver_email, message.as_string())
+    server.quit()

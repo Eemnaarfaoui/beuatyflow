@@ -68,6 +68,12 @@ export class AppMenu {
                     },
                 ]
             },
+            {
+                label: 'Settings',
+
+                items: [{ label: 'Admin', icon: 'pi pi-fw pi-home', routerLink: ['/admin'] }]
+            },
+
             //
             //####################################################################
             // DO NOT DELETE THIS IT WILL BE NEEDED FOR THE UIKIT PAGE //

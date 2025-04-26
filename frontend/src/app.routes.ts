@@ -21,6 +21,7 @@ export const appRoutes: Routes = [
             { path: 'procurement', loadChildren: () => import('./app/pages/procurement/procurement.routes') },
             { path: 'marketing', loadChildren: () => import('./app/pages/marketing/marketing.routes') },
             { path: 'ex_environment', loadChildren: () => import('./app/pages/ex_environment/ex_environment.routes') },
+            { path: 'admin', loadChildren: () => import('./app/pages/user_management/admin.routes') },
         ]
     },
     { path: 'landing', component: Landing, },

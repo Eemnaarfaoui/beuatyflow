@@ -17,6 +17,7 @@ def create_app():
     app.config['SQL_ENGINE'] = create_engine(connection_str)
     app.config['MONGO_URI'] = "mongodb+srv://Emna:1011@beautyflow.cpfshru.mongodb.net/"
     app.config['JWT_SECRET_KEY'] = 'super-secret-key'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = False  # Token will NEVER expire
     # Register routes
     from .routes.sales_routes import init_sales_routes
     init_sales_routes(app)
