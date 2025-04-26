@@ -169,3 +169,5 @@ To ensure a clean and structured Git workflow, please follow these branch naming
 - Always branch off from `main`.
 - Use **lowercase letters** and **hyphens** (`-`) to separate words.
 - Keep branch names **short but meaningful**.
+
+---Credit to The D&D Team----
