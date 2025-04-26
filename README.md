@@ -142,7 +142,7 @@ README.md     -> Setup and installation guide
   - Managed from `src/app/layout/component/app.menu.ts`
 
 ### Backend (Python Flask)
-
+   
 - **Folder Structure:**
   ```
   /backend/
