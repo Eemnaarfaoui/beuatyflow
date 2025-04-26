@@ -37,7 +37,7 @@ The stack used includes:
 2. **Create a virtual environment:**
    ```bash
    python -m venv venv
-   source venv/bin/activate   # On Windows: venv\Scripts\activate
+   venv\Scripts\activate
    ```
 
 
@@ -56,6 +56,7 @@ The stack used includes:
 
 4. **Run the Flask backend:**
    ```bash
+   pip install -r requirements.txt
    .venv\Scripts\activate
    python run.py
    ```
@@ -63,7 +64,9 @@ The stack used includes:
 
 ---
 
-## 🌐 Frontend Setup (Angular 19)
+## 🌐 Frontend Setup (Angular 19) ##
+
+Make sure you have angular 19 installed
 
 1. **Navigate to the frontend folder:**
    ```bash
@@ -74,10 +77,18 @@ The stack used includes:
    ```bash
    npm install
    ```
+3. **env set up:**
+create an environment folder under frontend/src 
+and add the file environment.ts under frontend/src/environment and copy this to the file :
+  
+  ```bash
+  export const environment = {
+    production: false,
+    apiUrl: 'http://127.0.0.1:5000/api' // Flask backend
+  };
+   ``` 
 
-
-
-3. **Run the Angular app:**
+4. **Run the Angular app:**
    ```bash
    ng serve
    ```
@@ -144,6 +155,7 @@ README.md     -> Setup and installation guide
       ├── venv/
       └── run.py
   ```
+
 
 - **Implementation Notes:**
   - Routes inside `routes/`
