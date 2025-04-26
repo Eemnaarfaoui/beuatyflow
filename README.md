@@ -30,7 +30,7 @@ The stack used includes:
 
 1. **Clone the project:**
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
+   git clone  https://github.com/your-username/beuatyflow.git
    cd your-repo-name/backend
    ```
 
@@ -57,6 +57,7 @@ The stack used includes:
 4. **Run the Flask backend:**
    ```bash
    pip install -r requirements.txt
+   .venv\Scripts\activate
    python run.py
    ```
    Backend will start running at [http://localhost:5000](http://localhost:5000).
@@ -138,7 +139,7 @@ README.md     -> Setup and installation guide
   - Reusable components under `src/app/ui-kit/`
 
 - **Sidebar Menu:**
-  - Managed from `src/app/app.menu.ts`
+  - Managed from `src/app/layout/component/app.menu.ts`
 
 ### Backend (Python Flask)
 
@@ -180,3 +181,5 @@ To ensure a clean and structured Git workflow, please follow these branch naming
 - Always branch off from `main`.
 - Use **lowercase letters** and **hyphens** (`-`) to separate words.
 - Keep branch names **short but meaningful**.
+
+---Credit to The D&D Team----
