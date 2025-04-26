@@ -8,8 +8,8 @@ def create_app():
     CORS(app)
 
     # Connection config
-    server = "localhost"
-    database = "DW_SupplyChain"
+    server = "BI"
+    database = "DW_Supply_Chain"
     driver = "ODBC Driver 17 for SQL Server"
 
     # SQLAlchemy engine
