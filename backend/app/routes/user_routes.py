@@ -24,7 +24,14 @@ def init_user_routes(app):
         user = users.find_one({"email": data["email"]})
         if not user or not bcrypt.check_password_hash(user["password"], data["password"]):
             return jsonify({"error": "Invalid email or password"}), 401
-        access_token = create_access_token(identity=str(user["_id"]))
+
+        # Add role and pages to the token
+        additional_claims = {
+            "role": user.get("role", "user"),
+            "pages": user.get("pages", [])
+        }
+
+        access_token = create_access_token(identity=str(user["_id"]), additional_claims=additional_claims)
         return jsonify(access_token=access_token), 200
 
     # LOGOUT (dummy)
@@ -45,13 +52,9 @@ def init_user_routes(app):
         if users.find_one({'email': data['email']}):
             return jsonify({"error": "User already exists"}), 400
 
-        # 1. Generate a random password
         generated_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
-
-        # 2. Hash it
         hashed_password = bcrypt.generate_password_hash(generated_password).decode('utf-8')
 
-        # 3. Insert new user into database
         user = {
             "email": data['email'],
             "password": hashed_password,
@@ -60,7 +63,6 @@ def init_user_routes(app):
         }
         users.insert_one(user)
 
-        # 4. Send email to the new user
         try:
             send_email_to_user(data['email'], generated_password)
         except Exception as e:
@@ -148,6 +150,7 @@ def init_user_routes(app):
         user = users.find_one({"_id": ObjectId(get_jwt_identity())})
         if not user:
             return jsonify({"error": "User not found"}), 404
+
         user['_id'] = str(user['_id'])
         del user['password']
         return jsonify(user), 200
@@ -168,8 +171,8 @@ def init_user_routes(app):
 
 # Helper: Send email function
 def send_email_to_user(receiver_email, generated_password):
-    sender_email = "beauty.flow2025@gmail.com"  # Put your sender email
-    sender_password = "nmhs sxxc bkpu hzum"  # Use an app password, not real login
+    sender_email = "beauty.flow2025@gmail.com"
+    sender_password = "nmhs sxxc bkpu hzum"  # Use app password here
 
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
