@@ -8,9 +8,9 @@ def create_app():
     CORS(app)
 
     # Connection config
-    server = "localhost"
+    server = "FATMA_ZINE\FATMAZINE"  # Barre oblique inverse échappée
     database = "DW_SupplyChain"
-    driver = "ODBC Driver 17 for SQL Server"
+    driver = "ODBC Driver 17 for SQL Server"  # or {ODBC Driver 17 for SQL Server}
 
     # SQLAlchemy engine
     connection_str = f"mssql+pyodbc://{server}/{database}?trusted_connection=yes&driver={driver.replace(' ', '+')}"
