@@ -3,78 +3,117 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
+import { AuthService } from '../../pages/auth/service/auth.service'; // import your auth service
 
 @Component({
-    selector: 'app-menu',
-    standalone: true,
-    imports: [CommonModule, AppMenuitem, RouterModule],
-    template: `<ul class="layout-menu">
-        <ng-container *ngFor="let item of model; let i = index">
-            <li app-menuitem *ngIf="!item.separator" [item]="item" [index]="i" [root]="true"></li>
-            <li *ngIf="item.separator" class="menu-separator"></li>
-        </ng-container>
-    </ul> `
+  selector: 'app-menu',
+  standalone: true,
+  imports: [CommonModule, AppMenuitem, RouterModule],
+  template: `
+    <ul class="layout-menu">
+      <ng-container *ngFor="let item of model; let i = index">
+        <li app-menuitem *ngIf="!item.separator" [item]="item" [index]="i" [root]="true"></li>
+        <li *ngIf="item.separator" class="menu-separator"></li>
+      </ng-container>
+    </ul>
+  `
 })
 export class AppMenu {
-    model: MenuItem[] = [];
+  model: MenuItem[] = [];
 
-    ngOnInit() {
-        this.model = [
-            {
-                label: 'Home',
-                items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
-            },
-            {
-                label: 'Departments',
-                items: [
-                    { label: 'Sales', icon: 'pi pi-fw pi-shopping-bag',
-                        items:[
-                            { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/products'] },
-                            { label: 'Shops', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/shops'] },
-                            { label: 'Orders', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/orders'] },
-                            { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/powerbi'] }
-                        ]
-                    },
-                    { label: 'Storage', icon: 'pi pi-fw pi-warehouse', routerLink: ['/uikit/input'] ,
-                        items:[
-                            { label: 'Warehouse', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/warehouses'] },
-                            { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/products'] },
-                            { label: 'Invoices', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/invoices'] },
-                            { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/powerbi'] }
-                        ]
-                    },
-                    { label: 'Procurement', icon: 'pi pi-fw pi-objects-column', class: 'rotated-icon', routerLink: ['/uikit/button'], 
-                        items:[
-                            { label: 'Suppliers', icon: 'pi pi-fw pi-warehouse', routerLink: ['/procurement/suppliers'] },
-                            { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/procurement/products'] },
-                            { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/procurement/powerbi'] }
-                        ]
-                    },
-                    {  label: 'Marketing', icon: 'pi pi-fw pi-megaphone', routerLink: ['/uikit/table'], 
-                        items:[
-                            { label: 'Preferences', icon: 'pi pi-fw pi-warehouse', routerLink: ['/marketing/preferences'] },
-                            { label: 'Customer Persona', icon: 'pi pi-fw pi-warehouse', routerLink: ['/marketing/customerpersona'] },
-                            { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/marketing/powerbi'] }
-                        ]
-                    },
-                    
-                    { label: 'External Environment', icon: 'pi pi-fw pi-briefcase', routerLink: ['/uikit/list'] ,
-                        items:[
-                            { label: 'External Shops', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/ex-shops'] },
-                            { label: 'External Suppliers', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/ex-suppliers'] },
-                            { label: 'Products on the market', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/ex-products'] },
-                            { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/powerbi'] }
-                        ]
-                    },
-                ]
-            },
-            {
-                label: 'Settings',
+  constructor(private authService: AuthService) {}
 
-                items: [{ label: 'Admin', icon: 'pi pi-fw pi-home', routerLink: ['/admin'] }]
-            },
+  ngOnInit() {
+    const userRole = this.authService.getUserRole()?.toLowerCase();
+    const userPages = this.authService.getUserPages();
 
-            //
+    this.model = [
+      {
+        label: 'Home',
+        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
+      },
+      {
+        label: 'Departments',
+        items: []
+      },
+      
+    ];
+
+ // Build Departments menu dynamically
+ if (userRole === 'admin' ) {
+    this.model!.push({
+        
+            label: 'Settings',
+            items: [{ label: 'Admin', icon: 'pi pi-fw pi-home', routerLink: ['/admin'] }]
+          
+    });
+  }
+
+
+    // Build Departments menu dynamically
+    if (userRole === 'admin' || userRole==='sales manager') {
+      this.model[1].items!.push({
+        label: 'Sales',
+        icon: 'pi pi-fw pi-shopping-bag',
+        items: [
+          { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/products'] },
+          { label: 'Shops', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/shops'] },
+          { label: 'Orders', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/orders'] },
+          { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/powerbi'] }
+        ]
+      });
+    }
+
+    if (userRole === 'admin' || userRole==='logistics manager') {
+      this.model[1].items!.push({
+        label: 'Storage',
+        icon: 'pi pi-fw pi-warehouse',
+        items: [
+          { label: 'Warehouse', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/warehouses'] },
+          { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/products'] },
+          { label: 'Invoices', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/invoices'] },
+          { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/powerbi'] }
+        ]
+      });
+    }
+
+    if (userRole === 'admin' || userRole==='procurement manager') {
+      this.model[1].items!.push({
+        label: 'Procurement',
+        icon: 'pi pi-fw pi-objects-column',
+        items: [
+          { label: 'Suppliers', icon: 'pi pi-fw pi-warehouse', routerLink: ['/procurement/suppliers'] },
+          { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/procurement/products'] },
+          { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/procurement/powerbi'] }
+        ]
+      });
+    }
+
+    if (userRole === 'admin' || userRole ==='marketing manager') {
+      this.model[1].items!.push({
+        label: 'Marketing',
+        icon: 'pi pi-fw pi-megaphone',
+        items: [
+          { label: 'Preferences', icon: 'pi pi-fw pi-warehouse', routerLink: ['/marketing/preferences'] },
+          { label: 'Customer Persona', icon: 'pi pi-fw pi-warehouse', routerLink: ['/marketing/customerpersona'] },
+          { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/marketing/powerbi'] }
+        ]
+      });
+    }
+
+    if (userRole === 'admin' || userPages.includes('competition monitoring manager')) {
+      this.model[1].items!.push({
+        label: 'External Environment',
+        icon: 'pi pi-fw pi-briefcase',
+        items: [
+          { label: 'External Shops', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/ex-shops'] },
+          { label: 'External Suppliers', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/ex-suppliers'] },
+          { label: 'Products on the market', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/ex-products'] },
+          { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/ex_environment/powerbi'] }
+        ]
+      });
+    }
+    //
             //####################################################################
             // DO NOT DELETE THIS IT WILL BE NEEDED FOR THE UIKIT PAGE //
             //####################################################################
@@ -193,6 +232,6 @@ export class AppMenu {
             //     ]
             // },
             //
-        ];
-    }
+
+  }
 }

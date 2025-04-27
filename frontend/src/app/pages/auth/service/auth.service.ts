@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../../environment/environment';
+import {jwtDecode} from "jwt-decode";
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -39,5 +40,23 @@ export class AuthService {
   initSession() {
     const token = this.getToken();
     this.isLoggedIn$.next(!!token);
+  }
+  decodeToken(): any {
+    const token = this.getToken();
+    if (token) {
+      return jwtDecode(token);
+    }
+    return null;
+  }
+
+  getUserPages(): string[] {
+    const decoded = this.decodeToken();
+    return decoded?.pages || [];
+  }
+
+  getUserRole(): string | null {
+    const decoded = this.decodeToken();
+    
+    return decoded?.role || null;
   }
 }
