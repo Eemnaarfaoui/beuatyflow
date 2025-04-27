@@ -24,6 +24,9 @@ def create_app():
     from .routes.user_routes import init_user_routes
     init_user_routes(app)
 
+    from .fiabilite_routes import ml_bp
+    app.register_blueprint(ml_bp)
+    
     from flask_jwt_extended import JWTManager
     jwt = JWTManager(app)
 
