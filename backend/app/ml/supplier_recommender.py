@@ -108,7 +108,6 @@ class SupplierRecommender:
             agg['score_recommandation'] = model.predict_proba(X)[:, 1]
             agg['Fournisseur'] = agg.index
 
-            # Prendre uniquement le meilleur fournisseur (score le plus élevé)
             top_supplier = agg.nlargest(1, 'score_recommandation')
             for _, row in top_supplier.iterrows():
                 recommendations.append({
