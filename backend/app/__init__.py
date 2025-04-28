@@ -7,7 +7,7 @@ from .config import Config
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app)  # Cela permet de résoudre les problèmes CORS pendant le développement.
 
     # Connection config
     app.config.from_object(Config)
