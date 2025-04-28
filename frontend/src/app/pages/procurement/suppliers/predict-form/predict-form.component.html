@@ -1,0 +1,28 @@
+<h2>Prédire la Fiabilité du Fournisseur</h2>
+<form (ngSubmit)="predictReliability()">
+    <div>
+        <label for="Frequence_Achat">Fréquence d'Achat:</label>
+        <input type="number" id="Frequence_Achat" name="Frequence_Achat" [(ngModel)]="formData.Frequence_Achat" required>
+    </div>
+    <div>
+        <label for="Volume_Total_Quantite">Volume Total Quantité:</label>
+        <input type="number" id="Volume_Total_Quantite" name="Volume_Total_Quantite" [(ngModel)]="formData.Volume_Total_Quantite" required>
+    </div>
+    <div>
+        <label for="Date_Dernier_Achat">Date du Dernier Achat (YYYY-MM-DD):</label>
+        <input type="text" id="Date_Dernier_Achat" name="Date_Dernier_Achat" [(ngModel)]="formData.Date_Dernier_Achat" placeholder="YYYY-MM-DD" required>
+    </div>
+    <div>
+        <label for="Diversite_Produits">Diversité des Produits:</label>
+        <input type="number" id="Diversite_Produits" name="Diversite_Produits" [(ngModel)]="formData.Diversite_Produits" required>
+    </div>
+    <button type="submit">Prédire la Fiabilité</button>
+</form>
+
+<div *ngIf="predictionResult">
+    <h3>Score de Fiabilité Prédit: {{ predictionResult }}</h3>
+</div>
+
+<div *ngIf="errorMessage" style="color: red;">
+    <p>Erreur: {{ errorMessage }}</p>
+</div>
