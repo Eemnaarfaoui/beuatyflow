@@ -182,4 +182,4 @@ To ensure a clean and structured Git workflow, please follow these branch naming
 - Use **lowercase letters** and **hyphens** (`-`) to separate words.
 - Keep branch names **short but meaningful**.
 
----Credit to The D&D Team----
+---Credit to The D&D Team 2025----
