@@ -1,4 +1,3 @@
-# supplier_recommender.py
 import pyodbc
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -59,72 +58,72 @@ class SupplierRecommender:
         if df.empty:
             return None
 
-        produit_valides = (
+        valid_products = (
             df.groupby('Product_FK')['supplier_FK'].nunique()
             .reset_index()
             .query('supplier_FK >= 3')['Product_FK']
             .tolist()
         )
 
-        if not produit_valides:
+        if not valid_products:
             return None
 
-        nb_a_afficher = min(50, len(produit_valides))
-        produits_selectionnes = produit_valides[:nb_a_afficher]
+        num_to_display = min(50, len(valid_products))
+        selected_products = valid_products[:num_to_display]
 
         points = []
         recommendations = []
 
-        for produit_id in produits_selectionnes:
-            df_prod = df[df['Product_FK'] == produit_id]
+        for product_id in selected_products:
+            df_prod = df[df['Product_FK'] == product_id]
             product_name = df_prod['Product_Name'].iloc[0]
 
             agg = df_prod.groupby('Supplier_Name').agg(
-                prix_moyen=('prix', 'mean'),
-                prix_ecart=('prix', 'std'),
-                quantite_totale=('quantite', 'sum'),
-                nb_livraisons=('FullDate', 'nunique'),
+                avg_price=('prix', 'mean'),
+                price_std=('prix', 'std'),
+                total_quantity=('quantite', 'sum'),
+                delivery_count=('FullDate', 'nunique'),
             ).fillna(0)
 
             if agg.shape[0] < 3:
                 continue
 
-            agg['frequence_mensuelle'] = agg['nb_livraisons'] / df_prod['FullDate'].nunique()
+            agg['monthly_frequency'] = agg['delivery_count'] / df_prod['FullDate'].nunique()
             agg['label'] = (
-                (agg['prix_moyen'] < agg['prix_moyen'].median()) & 
-                (agg['quantite_totale'] > agg['quantite_totale'].median())
+                (agg['avg_price'] < agg['avg_price'].median()) & 
+                (agg['total_quantity'] > agg['total_quantity'].median())
             ).astype(int)
 
             if agg['label'].nunique() < 2:
-                meilleur = agg['quantite_totale'].idxmax()
+                best_supplier = agg['total_quantity'].idxmax()
                 agg['label'] = 0
-                agg.loc[meilleur, 'label'] = 1
+                agg.loc[best_supplier, 'label'] = 1
 
-            X = agg[['prix_moyen', 'prix_ecart', 'quantite_totale', 'frequence_mensuelle']]
+            X = agg[['avg_price', 'price_std', 'total_quantity', 'monthly_frequency']]
             y = agg['label']
             model = RandomForestClassifier(n_estimators=100, random_state=42)
             model.fit(X, y)
 
-            agg['score_recommandation'] = model.predict_proba(X)[:, 1]
-            agg['Fournisseur'] = agg.index
+            agg['recommendation_score'] = model.predict_proba(X)[:, 1]
+            agg['Supplier'] = agg.index
 
-            top_supplier = agg.nlargest(1, 'score_recommandation')
+            top_supplier = agg.nlargest(1, 'recommendation_score')
             for _, row in top_supplier.iterrows():
                 recommendations.append({
-                    'Produit': product_name,
-                    'Fournisseur': row['Fournisseur'],
-                    'Score': row['score_recommandation'],
-                    'Prix_moyen': row['prix_moyen'],
-                    'Quantite': row['quantite_totale']
+                    'Product': product_name,
+                    'Supplier': row['Supplier'],
+                    'Score': row['recommendation_score'],
+                    'Avg_Price': row['avg_price'],
+                    'Quantity': row['total_quantity']
                 })
 
             for idx, row in agg.iterrows():
                 points.append({
-                    'Produit': product_name,
-                    'Fournisseur': row['Fournisseur'],
-                    'Score': row['score_recommandation'],
-                    'prix_moyen': row['prix_moyen'],
-                    'quantite_totale': row['quantite_totale']
+                    'Product': product_name,
+                    'Supplier': row['Supplier'],
+                    'Score': row['recommendation_score'],
+                    'avg_price': row['avg_price'],
+                    'total_quantity': row['total_quantity']
                 })
 
         if not points:
@@ -133,8 +132,8 @@ class SupplierRecommender:
         return {
             'points': pd.DataFrame(points),
             'recommendations': recommendations,
-            'total_products': len(produit_valides),
-            'analyzed_products': len(produits_selectionnes)
+            'total_products': len(valid_products),
+            'analyzed_products': len(selected_products)
         }
 
     def generate_plot(self, data):
@@ -142,18 +141,18 @@ class SupplierRecommender:
 
         plt.figure(figsize=(12, 7))
         scatter = plt.scatter(
-            df_points['prix_moyen'],
-            df_points['quantite_totale'],
+            df_points['avg_price'],
+            df_points['total_quantity'],
             c=df_points['Score'],
             cmap='viridis',
             s=100,
             edgecolor='black'
         )
 
-        plt.xlabel("Prix moyen")
-        plt.ylabel("Quantité totale livrée")
-        plt.title("🌟 Recommandation des fournisseurs par produit (ML)")
-        plt.colorbar(scatter, label="Score de recommandation")
+        plt.xlabel("Average Price (TND)")
+        plt.ylabel("Total Delivered Quantity")
+        plt.title("🌟 Supplier Recommendations by Product (ML Model)")
+        plt.colorbar(scatter, label="Recommendation Score (0-1)")
         plt.grid(True)
         plt.tight_layout()
 
@@ -164,11 +163,11 @@ class SupplierRecommender:
             index = sel.index
             row = df_points.iloc[index]
             sel.annotation.set(text=(
-                f"Produit: {row['Produit']}\n"
-                f"Fournisseur: {row['Fournisseur']}\n"
+                f"Product: {row['Product']}\n"
+                f"Supplier: {row['Supplier']}\n"
                 f"Score: {row['Score']:.2f}\n"
-                f"Prix: {row['prix_moyen']:.2f}\n"
-                f"Quantité: {row['quantite_totale']}"
+                f"Price: {row['avg_price']:.2f}\n"
+                f"Quantity: {row['total_quantity']}"
             ))
             sel.annotation.get_bbox_patch().set(fc="white", alpha=0.9)
 

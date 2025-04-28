@@ -1,0 +1,45 @@
+<div class="p-6">
+    <h1 class="text-3xl font-bold mb-4">Imminent Stock Shortage Detection</h1>
+  
+    <!-- Plot display -->
+    <div *ngIf="plotImage" class="mb-8">
+      <img [src]="'data:image/png;base64,' + plotImage" alt="Anomaly detection plot" class="w-full h-auto" />
+    </div>
+  
+    <!-- Critical products table -->
+    <div *ngIf="criticalProducts.length > 0" class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="py-2 px-4">Product</th>
+            <th class="py-2 px-4">Warehouse</th>
+            <th class="py-2 px-4">Current Stock</th>
+            <th class="py-2 px-4">Critical Threshold</th>
+            <th class="py-2 px-4">Deficit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of criticalProducts">
+            <td class="border p-2">{{ product.Product_Name }}</td>
+            <td class="border p-2">{{ product.Warehouse_Name }}</td>
+            <td class="border p-2">{{ product.rest_quantity | number:'1.0-0' }}</td>
+            <td class="border p-2">{{ product.critical_threshold | number:'1.0-0' }}</td>
+            <td class="border p-2 text-red-600 font-semibold">
+              {{ (product.critical_threshold - product.rest_quantity) | number:'1.0-0' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="mt-4 text-lg">Total critical products: <span class="font-bold">{{ criticalProducts.length }}</span></p>
+    </div>
+  
+    <!-- No critical products message -->
+    <div *ngIf="criticalProducts.length === 0 && loaded" class="text-green-500 mt-4 text-lg">
+      No critical stock shortages detected.
+    </div>
+  
+    <!-- Error message -->
+    <div *ngIf="errorMessage" class="text-red-500 mt-4 p-3 bg-red-50 rounded">
+      {{ errorMessage }}
+    </div>
+  </div>

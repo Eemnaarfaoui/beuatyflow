@@ -57,14 +57,14 @@ class AnomalyDetector:
 
         model = IsolationForest(n_estimators=150, contamination=0.05, random_state=42)
         df['anomaly'] = model.fit_predict(df[['rest_quantity']].values)
-        df['seuil_critique'] = df['avg_category'] * 0.2
-        df['rupture_critique'] = (df['anomaly'] == -1) & (df['rest_quantity'] < df['seuil_critique'])
+        df['critical_threshold'] = df['avg_category'] * 0.2
+        df['critical_shortage'] = (df['anomaly'] == -1) & (df['rest_quantity'] < df['critical_threshold'])
 
         return df
 
     def generate_plot(self, df):
-        ruptures = df[df['rupture_critique']].sort_values('rest_quantity')
-        normals = df[~df['rupture_critique']]
+        shortages = df[df['critical_shortage']].sort_values('rest_quantity')
+        normals = df[~df['critical_shortage']]
 
         plt.figure(figsize=(20, 10))
         
@@ -75,27 +75,27 @@ class AnomalyDetector:
             c='green',
             alpha=0.6,
             s=50,
-            label='Stock normal'
+            label='Normal Stock'
         )
 
         # Plot anomalies
-        sc_rupture = None
-        if not ruptures.empty:
-            sc_rupture = plt.scatter(
-                ruptures.index,
-                ruptures['rest_quantity'],
+        sc_shortage = None
+        if not shortages.empty:
+            sc_shortage = plt.scatter(
+                shortages.index,
+                shortages['rest_quantity'],
                 c='red',
                 s=150,
                 edgecolor='black',
                 marker='X',
-                label='Rupture imminente'
+                label='Imminent Shortage'
             )
-            for idx, row in ruptures.iterrows():
-                plt.axhline(y=row['seuil_critique'], color='orange', linestyle='--', alpha=0.3)
+            for idx, row in shortages.iterrows():
+                plt.axhline(y=row['critical_threshold'], color='orange', linestyle='--', alpha=0.3)
 
-        plt.title("Détection des produits en rupture de stock imminente")
-        plt.ylabel("Quantité en stock")
-        plt.xlabel("Produits (index)")
+        plt.title("Imminent Stock Shortage Detection")
+        plt.ylabel("Current Stock Quantity")
+        plt.xlabel("Products (index)")
         plt.grid(True, linestyle='--', alpha=0.3)
         plt.legend()
 
@@ -107,18 +107,18 @@ class AnomalyDetector:
             idx = sel.index
             if sel.artist == sc_normal:
                 row = normals.iloc[idx]
-                text = (f"Produit: {row['Product_Name']}\n"
-                       f"Entrepôt: {row['Warehouse_Name']}\n"
+                text = (f"Product: {row['Product_Name']}\n"
+                       f"Warehouse: {row['Warehouse_Name']}\n"
                        f"Stock: {row['rest_quantity']}\n"
-                       f"Moyenne catégorie: {int(row['avg_category'])}")
-            elif sc_rupture is not None and sel.artist == sc_rupture:
-                row = ruptures.iloc[idx]
-                text = (f"⚠️ CRITIQUE ⚠️\n"
-                       f"Produit: {row['Product_Name']}\n"
-                       f"Entrepôt: {row['Warehouse_Name']}\n"
-                       f"Stock actuel: {row['rest_quantity']}\n"
-                       f"Seuil critique: {int(row['seuil_critique'])}\n"
-                       f"Déficit: {int(row['seuil_critique'] - row['rest_quantity'])}")
+                       f"Category average: {int(row['avg_category'])}")
+            elif sc_shortage is not None and sel.artist == sc_shortage:
+                row = shortages.iloc[idx]
+                text = (f"⚠️ CRITICAL SHORTAGE ⚠️\n"
+                       f"Product: {row['Product_Name']}\n"
+                       f"Warehouse: {row['Warehouse_Name']}\n"
+                       f"Current stock: {row['rest_quantity']}\n"
+                       f"Critical threshold: {int(row['critical_threshold'])}\n"
+                       f"Deficit: {int(row['critical_threshold'] - row['rest_quantity'])}")
             sel.annotation.set_text(text)
             sel.annotation.get_bbox_patch().set(fc="white", alpha=0.95, boxstyle="round,pad=0.5")
 
@@ -136,8 +136,8 @@ class AnomalyDetector:
 
         plot_image = self.generate_plot(df)
         
-        critical = df[df['rupture_critique']][
-            ['Product_Name', 'Warehouse_Name', 'rest_quantity', 'seuil_critique']
+        critical = df[df['critical_shortage']][
+            ['Product_Name', 'Warehouse_Name', 'rest_quantity', 'critical_threshold']
         ].sort_values('rest_quantity')
         
         return {

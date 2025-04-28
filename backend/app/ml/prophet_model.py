@@ -1,7 +1,7 @@
 import pandas as pd
 from prophet import Prophet
 import matplotlib
-matplotlib.use('Agg')  # Important - doit être avant l'import pyplot
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
@@ -22,12 +22,12 @@ def get_data():
         """
         df = pd.read_sql(query, engine)
         
-        # Nettoyage des données
+        # Data cleaning
         df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
         df['Unit_Price__TND_'] = df['Unit_Price__TND_'].astype(str).str.replace(',', '.').astype(float)
         df['Supplier'] = df['Supplier'].str.strip()
         
-        # Suppression des outliers
+        # Remove outliers
         df = df[(df['Unit_Price__TND_'] > df['Unit_Price__TND_'].quantile(0.05)) &
                 (df['Unit_Price__TND_'] < df['Unit_Price__TND_'].quantile(0.95))]
         
@@ -36,30 +36,30 @@ def get_data():
         engine.dispose()
 
 def create_forecast_plot(model, forecast, supplier_name):
-    """Crée un graphique de prévision et le retourne en base64"""
+    """Creates a forecast plot and returns it as base64"""
     fig = plt.figure(figsize=(12, 6), facecolor='white')
     ax = fig.add_subplot(111)
     
     # Plot the forecast
     model.plot(forecast, ax=ax)
-    ax.set_title(f'Prévision des prix pour: {supplier_name}', fontsize=14)
+    ax.set_title(f'Price Forecast for: {supplier_name}', fontsize=14)
     ax.set_xlabel('Date', fontsize=12)
-    ax.set_ylabel('Prix unitaire (TND)', fontsize=12)
+    ax.set_ylabel('Unit Price (TND)', fontsize=12)
     ax.grid(True, linestyle='--', alpha=0.6)
     
-    # Sauvegarde en mémoire
+    # Save to memory buffer
     buf = BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
-    plt.close(fig)  # Fermeture explicite pour libérer la mémoire
+    plt.close(fig)  # Explicit close to free memory
     buf.seek(0)
     return base64.b64encode(buf.read()).decode('utf-8')
 
-@lru_cache(maxsize=10)  # Cache les modèles pour 10 fournisseurs différents
+@lru_cache(maxsize=10)  # Cache models for 10 different suppliers
 def train_forecast_supplier(supplier_name, periods=12):
-    """Entraîne le modèle et retourne les résultats formatés"""
+    """Trains the model and returns formatted results"""
     df = get_data()
     
-    # Agrégation mensuelle
+    # Monthly aggregation
     monthly_prices = (
         df.groupby(['Supplier', pd.Grouper(key='Date', freq='MS')])['Unit_Price__TND_']
         .mean()
@@ -70,20 +70,20 @@ def train_forecast_supplier(supplier_name, periods=12):
     df_supplier = monthly_prices[monthly_prices['Supplier'] == supplier_name][['ds', 'y']]
     
     if len(df_supplier) < 12:
-        raise ValueError(f"Pas assez de données pour {supplier_name} (minimum 12 mois requis)")
+        raise ValueError(f"Not enough data for {supplier_name} (minimum 12 months required)")
     
-    # Entraînement du modèle
+    # Model training
     model = Prophet()
     model.fit(df_supplier)
     
-    # Prévision
+    # Forecast
     future = model.make_future_dataframe(periods=periods, freq='MS')
     forecast = model.predict(future)
     
-    # Création du graphique
+    # Create plot
     plot_image = create_forecast_plot(model, forecast, supplier_name)
     
-    # Préparation des données
+    # Prepare forecast data
     forecast_data = forecast[['ds', 'yhat']].tail(periods).to_dict('records')
     
     return {
