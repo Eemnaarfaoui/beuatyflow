@@ -1,2 +1,16 @@
 frontend/src/environment/environment.ts
 frontend/package-lock.json
+backend/app/__pycache__/data_fetcher.cpython-313.pyc
+backend/app/__pycache__/__init__.cpython-313.pyc
+backend/app/__pycache__/config.cpython-313.pyc
+backend/__pycache__/config.cpython-313.pyc
+backend/app/ml/__pycache__/predicting_sales.cpython-313.pyc
+backend/app/__pycache__/__init__.cpython-313.pyc
+backend/app/routes/__pycache__/sales_routes.cpython-313.pyc
+backend/app/routes/__pycache__/user_routes.cpython-313.pyc
+backend/app/routes/__pycache__/sales_routes.cpython-313.pyc
+backend/app/routes/__pycache__/user_routes.cpython-313.pyc
+backend/app/__pycache__/__init__.cpython-313.pyc
+backend/app/routes/__pycache__/user_routes.cpython-313.pyc
+backend/app/routes/__pycache__/sales_routes.cpython-313.pyc
+backend/app/__pycache__/__init__.cpython-313.pyc
