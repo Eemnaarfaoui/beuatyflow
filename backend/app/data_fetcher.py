@@ -2,7 +2,6 @@ import pandas as pd
 from sqlalchemy import create_engine
 import numpy as np
 from flask import current_app
-from . import app
 
 def get_db_connection():
     """
@@ -11,15 +10,14 @@ def get_db_connection():
     Returns:
     - SQLAlchemy engine connection object
     """
-    with app.app_context():
-        server = app.config['SERVER']
-        datawarehouse = app.config['DATAWAREHOUSE']
-        driver = app.config['DRIVER']
-        
-        # Build the connection string dynamically from the app's config
-        connection_str = f"mssql+pyodbc://{server}/{datawarehouse}?trusted_connection=yes&driver={driver.replace(' ', '+')}"
-        engine = create_engine(connection_str)
-        return engine.connect() 
+    server = current_app.config['SERVER']
+    datawarehouse = current_app.config['DATAWAREHOUSE']
+    driver = current_app.config['DRIVER']
+    
+    # Build the connection string dynamically from the app's config
+    connection_str = f"mssql+pyodbc://{server}/{datawarehouse}?trusted_connection=yes&driver={driver.replace(' ', '+')}"
+    engine = create_engine(connection_str)
+    return engine.connect()
 
 def fetch_sales_data():
     """

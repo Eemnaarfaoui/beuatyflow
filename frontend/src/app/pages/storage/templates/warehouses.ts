@@ -64,7 +64,7 @@ import * as XLSX from 'xlsx';
         </tbody>
       </table>
 
-      <pagination-controls (pageChange)="page = $event" [totalItems]="filteredInventory.length" [itemsPerPage]="itemsPerPage" maxSize="5" directionLinks="true"></pagination-controls>
+      <!-- <pagination-controls (pageChange)="page = $event" [totalItems]="filteredInventory.length" [itemsPerPage]="itemsPerPage" maxSize="5" directionLinks="true"></pagination-controls> -->
 
       <div *ngIf="filteredInventory.length === 0" class="alert alert-warning mt-3">
         Aucun résultat trouvé.

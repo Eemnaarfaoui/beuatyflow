@@ -69,8 +69,8 @@ export class AppMenu {
         label: 'Storage',
         icon: 'pi pi-fw pi-warehouse',
         items: [
-          { label: 'Warehouse', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/warehouses'] },
-          { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/products'] },
+          { label: 'Inventory', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/warehouses'] },
+          { label: 'Warehouse', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/products'] },
           { label: 'Invoices', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/invoices'] },
           { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/powerbi'] }
         ]

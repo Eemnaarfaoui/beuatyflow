@@ -69,7 +69,7 @@ import * as XLSX from 'xlsx';
       </table>
 
       <!-- Pagination -->
-      <pagination-controls (pageChange)="page = $event" [totalItems]="filteredWarehouses.length" [itemsPerPage]="itemsPerPage" maxSize="5" directionLinks="true"></pagination-controls>
+      <!-- <pagination-controls (pageChange)="page = $event" [totalItems]="filteredWarehouses.length" [itemsPerPage]="itemsPerPage" maxSize="5" directionLinks="true"></pagination-controls> -->
 
       <div *ngIf="filteredWarehouses.length === 0" class="alert alert-warning mt-3">
         No warehouses found.
