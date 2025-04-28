@@ -2,18 +2,18 @@ from flask import Flask
 from flask_cors import CORS
 from sqlalchemy import create_engine
 import dns.resolver
+from .config import Config
+
+app = Flask(__name__)
 
 def create_app():
-    app = Flask(__name__)
     CORS(app)
 
     # Connection config
-    server = "localhost"
-    database = "DW_SupplyChain"
-    driver = "ODBC Driver 17 for SQL Server"
-
+    app.config.from_object(Config)
+    
     # SQLAlchemy engine
-    connection_str = f"mssql+pyodbc://{server}/{database}?trusted_connection=yes&driver={driver.replace(' ', '+')}"
+    connection_str = f"mssql+pyodbc://{app.config['SERVER']}/{app.config['DATAWAREHOUSE']}?trusted_connection=yes&driver={app.config['DRIVER'].replace(' ', '+')}"
     app.config['SQL_ENGINE'] = create_engine(connection_str)
     app.config['MONGO_URI'] = "mongodb+srv://Emna:1011@beautyflow.cpfshru.mongodb.net/"
     app.config['JWT_SECRET_KEY'] = 'super-secret-key'
