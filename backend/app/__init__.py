@@ -3,11 +3,31 @@ from flask_cors import CORS
 from sqlalchemy import create_engine
 import dns.resolver
 import os
+from .ml.recommender import Recommender
+from .routes.recommander_routes import recommander_bp
 from .routes.fiabilite_routes import ml_bp
+
 def create_app():
     app = Flask(__name__)
     app.register_blueprint(ml_bp)
-    return app
+    app.register_blueprint(recommander_bp)
+
+    @app.before_request
+    def before_request():
+        from flask import g
+        g.recommender = Recommender(
+            server='FATMA_ZINE\\FATMAZINE',
+            database='DW_SupplyChain',
+            driver='ODBC Driver 17 for SQL Server'
+        )
+
+    @app.teardown_appcontext
+    def shutdown_recommender(error=None):
+        from flask import g
+        if hasattr(g, 'recommender'):
+            g.recommender.close_connection()
+            if error:
+                print(f"Erreur lors de la fermeture de la connexion : {error}")
 
  # Connection config
     server = r"FATMA_ZINE\FATMAZINE"
