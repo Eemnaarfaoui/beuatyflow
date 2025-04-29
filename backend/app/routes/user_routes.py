@@ -172,7 +172,7 @@ def init_user_routes(app):
 # Helper: Send email function
 def send_email_to_user(receiver_email, generated_password):
     sender_email = "beauty.flow2025@gmail.com"
-    sender_password = "nmhs sxxc bkpu hzum"  # Use app password here
+    sender_password = "cruv vavf vigd hdku"  # Use app password here
 
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
