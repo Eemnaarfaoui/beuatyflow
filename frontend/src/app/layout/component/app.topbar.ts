@@ -36,7 +36,7 @@ import { AuthService } from '../../pages/auth/service/auth.service';
                         />
                     </g>
                 </svg>
-                <span>BeautyFlow</span>
+                <span routerLink="/landing">BeautyFlow </span>
             </a>
         </div>
 
