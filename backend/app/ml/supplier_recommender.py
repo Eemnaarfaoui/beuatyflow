@@ -1,14 +1,17 @@
-import pyodbc
+import pyodbc 
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
+from matplotlib.patches import FancyBboxPatch
+from matplotlib.colors import LinearSegmentedColormap
 from sklearn.ensemble import RandomForestClassifier
 from io import BytesIO
 import base64
 import warnings
 import mplcursors
 from functools import lru_cache
+import numpy as np
 
 warnings.filterwarnings("ignore")
 
@@ -136,44 +139,80 @@ class SupplierRecommender:
             'analyzed_products': len(selected_products)
         }
 
+    def get_score_color(self, score):
+        if score >= 0.7:
+            return '#4CAF50'  # Green
+        elif score >= 0.4:
+            return '#FFC107'  # Yellow
+        else:
+            return '#F44336'  # Red
+
     def generate_plot(self, data):
         df_points = data['points']
+        if df_points.empty:
+            return None
 
-        plt.figure(figsize=(12, 7))
-        scatter = plt.scatter(
+        # HD Figure setup
+        fig, ax = plt.subplots(figsize=(16, 10), dpi=100)
+
+        # Background gradient
+        fig.patch.set_facecolor('#f8fafc')
+        ax.set_facecolor('#f1f5f9')
+
+        # Scatter plot
+        scatter = ax.scatter(
             df_points['avg_price'],
             df_points['total_quantity'],
             c=df_points['Score'],
             cmap='viridis',
-            s=100,
-            edgecolor='black'
+            s=300,
+            edgecolor='black',
+            linewidth=0.8,
+            alpha=0.85
         )
 
-        plt.xlabel("Average Price (TND)")
-        plt.ylabel("Total Delivered Quantity")
-        plt.title("🌟 Supplier Recommendations by Product (ML Model)")
-        plt.colorbar(scatter, label="Recommendation Score (0-1)")
-        plt.grid(True)
-        plt.tight_layout()
+        # Title and labels
+        ax.set_title("Supplier Recommendations by Product", fontsize=20, fontweight='bold', color='#1e293b', pad=20)
+        ax.set_xlabel("Average Price (TND)", fontsize=14, labelpad=15, color='#334155')
+        ax.set_ylabel("Total Delivered Quantity", fontsize=14, labelpad=15, color='#334155')
 
-        cursor = mplcursors.cursor(scatter, hover=True)
+        # Grid and spines
+        ax.grid(True, which='major', linestyle='--', linewidth=0.5, color='#cbd5e1')
+        for spine in ax.spines.values():
+            spine.set_visible(False)
 
-        @cursor.connect("add")
-        def on_add(sel):
-            index = sel.index
-            row = df_points.iloc[index]
-            sel.annotation.set(text=(
-                f"Product: {row['Product']}\n"
-                f"Supplier: {row['Supplier']}\n"
-                f"Score: {row['Score']:.2f}\n"
-                f"Price: {row['avg_price']:.2f}\n"
-                f"Quantity: {row['total_quantity']}"
-            ))
-            sel.annotation.get_bbox_patch().set(fc="white", alpha=0.9)
+        # Ticks style
+        ax.tick_params(colors='#64748b', labelsize=12)
 
+        # Color bar
+        cbar = plt.colorbar(scatter, ax=ax, pad=0.02)
+        cbar.set_label("Recommendation Score (0-1)", fontsize=13, color='#334155')
+        cbar.ax.tick_params(labelsize=11, colors='#334155')
+
+        # Annotations with hover (only if needed in interactive env)
+        try:
+            cursor = mplcursors.cursor(scatter, hover=True)
+
+            @cursor.connect("add")
+            def on_add(sel):
+                index = sel.index
+                row = df_points.iloc[index]
+                sel.annotation.set(text=(
+                    f"Product: {row['Product']}\n"
+                    f"Supplier: {row['Supplier']}\n"
+                    f"Score: {row['Score']:.2f}\n"
+                    f"Price: {row['avg_price']:.2f}\n"
+                    f"Quantity: {row['total_quantity']}"
+                ))
+                sel.annotation.get_bbox_patch().set(fc="white", alpha=0.9)
+        except:
+            pass  # mplcursors is optional, avoid crash on headless servers
+
+        # Save to buffer
         buf = BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
-        plt.close()
+        plt.tight_layout()
+        plt.savefig(buf, format='png', bbox_inches='tight', dpi=200)  # HD export
+        plt.close(fig)
         buf.seek(0)
         return base64.b64encode(buf.read()).decode('utf-8')
 
