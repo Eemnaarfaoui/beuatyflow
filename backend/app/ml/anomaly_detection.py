@@ -1,3 +1,4 @@
+# app/ml/anomaly_detection.py
 import pyodbc
 import pandas as pd
 import numpy as np
@@ -14,7 +15,7 @@ class AnomalyDetector:
     def __init__(self):
         self.server = r'AMINE\SQLEXPRESS'
         self.database = 'DW_SupplyChain'
-    
+
     def connect_db(self):
         conn_str = (
             'DRIVER={ODBC Driver 17 for SQL Server};'
@@ -59,7 +60,6 @@ class AnomalyDetector:
         df['anomaly'] = model.fit_predict(df[['rest_quantity']].values)
         df['critical_threshold'] = df['avg_category'] * 0.2
         df['critical_shortage'] = (df['anomaly'] == -1) & (df['rest_quantity'] < df['critical_threshold'])
-
         return df
 
     def generate_plot(self, df):
@@ -67,29 +67,11 @@ class AnomalyDetector:
         normals = df[~df['critical_shortage']]
 
         plt.figure(figsize=(20, 10))
-        
-        # Plot normal points
-        sc_normal = plt.scatter(
-            normals.index,
-            normals['rest_quantity'],
-            c='green',
-            alpha=0.6,
-            s=50,
-            label='Normal Stock'
-        )
-
-        # Plot anomalies
+        sc_normal = plt.scatter(normals.index, normals['rest_quantity'], c='green', alpha=0.6, s=50, label='Normal Stock')
         sc_shortage = None
         if not shortages.empty:
-            sc_shortage = plt.scatter(
-                shortages.index,
-                shortages['rest_quantity'],
-                c='red',
-                s=150,
-                edgecolor='black',
-                marker='X',
-                label='Imminent Shortage'
-            )
+            sc_shortage = plt.scatter(shortages.index, shortages['rest_quantity'], c='red', s=150,
+                                      edgecolor='black', marker='X', label='Imminent Shortage')
             for idx, row in shortages.iterrows():
                 plt.axhline(y=row['critical_threshold'], color='orange', linestyle='--', alpha=0.3)
 
@@ -99,7 +81,6 @@ class AnomalyDetector:
         plt.grid(True, linestyle='--', alpha=0.3)
         plt.legend()
 
-        # Add interactive cursor
         cursor = mplcursors.cursor(hover=True)
 
         @cursor.connect("add")
@@ -108,21 +89,20 @@ class AnomalyDetector:
             if sel.artist == sc_normal:
                 row = normals.iloc[idx]
                 text = (f"Product: {row['Product_Name']}\n"
-                       f"Warehouse: {row['Warehouse_Name']}\n"
-                       f"Stock: {row['rest_quantity']}\n"
-                       f"Category average: {int(row['avg_category'])}")
+                        f"Warehouse: {row['Warehouse_Name']}\n"
+                        f"Stock: {row['rest_quantity']}\n"
+                        f"Category average: {int(row['avg_category'])}")
             elif sc_shortage is not None and sel.artist == sc_shortage:
                 row = shortages.iloc[idx]
                 text = (f"⚠️ CRITICAL SHORTAGE ⚠️\n"
-                       f"Product: {row['Product_Name']}\n"
-                       f"Warehouse: {row['Warehouse_Name']}\n"
-                       f"Current stock: {row['rest_quantity']}\n"
-                       f"Critical threshold: {int(row['critical_threshold'])}\n"
-                       f"Deficit: {int(row['critical_threshold'] - row['rest_quantity'])}")
+                        f"Product: {row['Product_Name']}\n"
+                        f"Warehouse: {row['Warehouse_Name']}\n"
+                        f"Current stock: {row['rest_quantity']}\n"
+                        f"Critical threshold: {int(row['critical_threshold'])}\n"
+                        f"Deficit: {int(row['critical_threshold'] - row['rest_quantity'])}")
             sel.annotation.set_text(text)
             sel.annotation.get_bbox_patch().set(fc="white", alpha=0.95, boxstyle="round,pad=0.5")
 
-        # Save to buffer
         buf = BytesIO()
         plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
         plt.close()
@@ -135,11 +115,10 @@ class AnomalyDetector:
             return {"error": "No data available"}
 
         plot_image = self.generate_plot(df)
-        
         critical = df[df['critical_shortage']][
             ['Product_Name', 'Warehouse_Name', 'rest_quantity', 'critical_threshold']
         ].sort_values('rest_quantity')
-        
+
         return {
             'plot_image': plot_image,
             'critical_products': critical.to_dict('records'),
