@@ -34,6 +34,15 @@ def create_app():
     from .routes.warehouse_routes import init_warehouse_routes
     init_warehouse_routes(app)
 
+    from app.routes.anomaly_routes import anomaly_bp
+    app.register_blueprint(anomaly_bp)
+
+    from app.routes.forecast_routes import forecast_bp
+    app.register_blueprint(forecast_bp, url_prefix='/ml')
+
+    from app.routes.recommendation_routes import recommendation_bp
+    app.register_blueprint(recommendation_bp)
+
     # Configuration de JWT
     jwt = JWTManager(app)
 
