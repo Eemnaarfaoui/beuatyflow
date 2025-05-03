@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@angular/material": "^19.2.14",
+    "@swimlane/ngx-charts": "^22.0.0-alpha.1",
+    "ngx-spinner": "^19.0.0"
+  }
+}
