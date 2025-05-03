@@ -12,6 +12,7 @@ class ModeleClassificationRF:
         self.label_encoders = {}
         self.scaler = None
         self.is_trained = False
+        self.feature_names = []
         self.db_server = os.environ.get("DB_SERVER", "DESKTOP-CAV7GGJ\\MSSQLSERVERRR")
         self.db_name = os.environ.get("DB_NAME", "DW_FINALE")
         self.db_driver = os.environ.get("DB_DRIVER", "ODBC Driver 17 for SQL Server").replace(" ", "+")
@@ -21,7 +22,7 @@ class ModeleClassificationRF:
                                     'type_achat', 'critere_achat', 'canal_achat', 'interet_app', 'profession',
                                     'secteur', 'region', 'interet_rec', 'objectif_cos', 'probleme_peau', 'ingredients_eviter']
         self.numerical_cols = ['age', 'salaire', 'budget', 'frequence_app', 'temp_moy_achat', 'niveau_fidelite']
-        self._train_model() # Entraîner le modèle lors de l'initialisation
+        self._train_model()
 
     def _connect_db(self):
         return create_engine(self.connection_string)
@@ -103,11 +104,7 @@ class ModeleClassificationRF:
 
         df['salaire'] = df['salaire'].apply(transform_salaire)
 
-        def transform_frequence_app(frequence):
-            mapping = {'Jamais': 0, 'Occasionnellement': 1, 'Fréquemment': 2, 'Très fréquemment': 3}
-            return mapping.get(frequence, None)
-
-        df['frequence_app'] = df['frequence_app'].apply(transform_frequence_app)
+        df['frequence_app'] = df['frequence_app'].map({'Jamais': 0, 'Occasionnellement': 1, 'Fréquemment': 2, 'Très fréquemment': 3})
 
         def transform_temp_moy_achat(temp):
             if isinstance(temp, str):
@@ -122,20 +119,20 @@ class ModeleClassificationRF:
 
         df['temp_moy_achat'] = df['temp_moy_achat'].apply(transform_temp_moy_achat)
 
-        def transform_niveau_fidelite(niveau):
-            mapping = {'Pas du tout fidèle': 0, 'Fidèle de temps en temps': 1, 'Modérément fidèle': 2, 'Très fidèle : j’achète toujours les mêmes marques': 3}
-            return mapping.get(niveau, None)
+        df['niveau_fidelite'] = df['niveau_fidelite'].map({
+            'Pas du tout fidèle': 0,
+            'Fidèle de temps en temps': 1,
+            'Modérément fidèle': 2,
+            'Très fidèle : j’achète toujours les mêmes marques': 3
+        })
 
-        df['niveau_fidelite'] = df['niveau_fidelite'].apply(transform_niveau_fidelite)
-
-        numerical_cols = ['age', 'budget', 'salaire', 'frequence_app', 'temp_moy_achat', 'niveau_fidelite']
-        df_numerical = df[numerical_cols].fillna(df[numerical_cols].mean())
+        df_numerical = df[self.numerical_cols].fillna(df[self.numerical_cols].mean())
 
         if is_training:
             self.scaler = StandardScaler()
-            df[numerical_cols] = self.scaler.fit_transform(df_numerical)
-        elif self.scaler is not None:
-            df[numerical_cols] = self.scaler.transform(df_numerical)
+            df[self.numerical_cols] = self.scaler.fit_transform(df_numerical)
+        else:
+            df[self.numerical_cols] = self.scaler.transform(df_numerical)
 
         return df
 
@@ -143,96 +140,42 @@ class ModeleClassificationRF:
         df = self._load_data()
         df = self._preprocess_data(df, is_training=True)
 
-        X = df.drop(['preference_cos', 'Rec_PK', 'Rec_ID', 'Category_FK'], axis=1) # Exclude Category_FK here
+        X = df.drop(['preference_cos', 'Rec_PK', 'Rec_ID', 'Category_FK'], axis=1)
         y = df['preference_cos']
 
         self.model = RandomForestClassifier(n_estimators=100, random_state=42)
         self.model.fit(X, y)
+        self.feature_names = list(X.columns)
         self.is_trained = True
-        print("Modèle Random Forest entraîné lors de l'initialisation.")
-        print("Noms des colonnes utilisées pour l'entraînement :", list(X.columns))
+        print("Modèle Random Forest entraîné.")
+        print("Colonnes utilisées :", self.feature_names)
 
     def predict(self, data):
         if not self.is_trained:
-            raise Exception("Le modèle n'a pas été entraîné.")
+            raise Exception("Modèle non entraîné.")
 
         input_df = pd.DataFrame([data])
-        input_df = self._preprocess_data(input_df, is_training=False)
 
-        # Sélectionner uniquement les colonnes utilisées pour l'entraînement
-        features_trained = list(self.label_encoders.keys())
-        if 'preference_cos' in features_trained:
-            features_trained.remove('preference_cos')
-        if 'Category_FK' in features_trained: # Exclude Category_FK here as well
-            features_trained.remove('Category_FK')
-
-        # Ajouter les colonnes numériques manquantes avec des valeurs par défaut (ex: 0 ou moyenne)
+        # Complétion des colonnes manquantes
+        for col in self.categorical_columns:
+            if col not in input_df.columns:
+                input_df[col] = 'unknown'
         for col in self.numerical_cols:
             if col not in input_df.columns:
                 input_df[col] = np.nan
-        input_df[self.numerical_cols] = input_df[self.numerical_cols].fillna(pd.Series([input_df[c].mean() for c in self.numerical_cols], index=self.numerical_cols))
 
-        # Ajouter les colonnes catégorielles manquantes (on ne peut pas vraiment les imputer de manière significative sans info)
-        for col in self.categorical_columns:
-            if col not in input_df.columns:
-                input_df[col] = 'unknown' # Ou une autre valeur par défaut
+        input_df = self._preprocess_data(input_df, is_training=False)
 
-        print("Noms des colonnes dans input_df pour la prédiction :", list(input_df.columns))
-        print("Noms des colonnes attendues (features_trained + self.numerical_cols) :", features_trained + self.numerical_cols)
-
-        # S'assurer que les colonnes sont dans le même ordre que lors de l'entraînement (si l'ordre est important pour le modèle)
         try:
-            input_df = input_df[features_trained + self.numerical_cols]
+            input_df = input_df.reindex(columns=self.feature_names)
         except KeyError as e:
-            return {"error": f"Erreur: Colonne manquante dans les données de prédiction: {e}"}
-
-        if self.scaler is not None and self.numerical_cols:
-            input_df[self.numerical_cols] = self.scaler.transform(input_df[self.numerical_cols])
-
-        # Encoder les colonnes catégorielles pour la prédiction
-        for col in self.categorical_columns:
-            if col in self.label_encoders:
-                input_df[col] = input_df[col].astype(str)
-                input_df[col] = input_df[col].apply(lambda x: self.label_encoders[col].transform([x])[0]
-                                                if x in self.label_encoders[col].classes_ else -1)
+            return {"error": f"Erreur : colonnes manquantes ou mal ordonnées : {e}"}
 
         prediction = self.model.predict(input_df)
+
         if 'preference_cos' in self.label_encoders:
             try:
-                decoded_preference = self.label_encoders['preference_cos'].inverse_transform(prediction)[0]
-                return decoded_preference
-            except ValueError as e:
-                return {"error": f"Erreur lors du décodage de la prédiction: {e}, classes connues: {self.label_encoders['preference_cos'].classes_}, prediction: {prediction}"}
-        else:
-            return {"error": "LabelEncoder pour preference_cos non trouvé."}
-
-if __name__ == '__main__':
-    model = ModeleClassificationRF()
-    example_data = {
-        'sexe': 'Homme',
-        'type_peau': 'Grasse',
-        'type_cheveux': 'Gras',
-        'marque_tunisiennes_conn': 'Oui',
-        'marque_tunisiennes_util': 'Non',
-        'pref_internationale': 'Oui',
-        'local_VS_inter': 'International',
-        'type_achat': 'En ligne',
-        'critere_achat': 'Prix',
-        'canal_achat': 'Site web',
-        'interet_app': 'Oui',
-        'profession': 'Ingénieur',
-        'secteur': 'IT',
-        'region': 'Tunis',
-        'interet_rec': 'Oui',
-        'objectif_cos': 'Hydratation',
-        'probleme_peau': 'Acné',
-        'ingredients_eviter': 'Parabènes',
-        'age': '25 - 34 ans',
-        'budget': None,
-        'salaire': 'De 2 000 à 3 000 TND',
-        'frequence_app': 'Occasionnellement',
-        'temp_moy_achat': 'De 5 à 10 minutes',
-        'niveau_fidelite': 'Fidèle de temps en temps'
-    }
-    prediction = model.predict(example_data)
-    print("Prédiction pour l'exemple:", prediction)
+                return self.label_encoders['preference_cos'].inverse_transform(prediction)[0]
+            except Exception as e:
+                return {"error": f"Erreur de décodage : {e}"}
+        return {"error": "LabelEncoder 'preference_cos' manquant"}
