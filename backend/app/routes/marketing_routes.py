@@ -1,9 +1,9 @@
+# backend/app/routes/marketing_routes.py
 from flask import Blueprint, request, jsonify
 from app.ml.preferences import ModeleClassificationRF
 
 marketing_bp = Blueprint('marketing', __name__, url_prefix='/marketing')
-modele_rf = ModeleClassificationRF()
-modele_rf.train() # Entraîner le modèle au démarrage de l'application (ou le charger)
+modele_rf = ModeleClassificationRF() # L'entraînement se fait lors de l'initialisation
 
 @marketing_bp.route('/predict_preference', methods=['POST'])
 def predict_preference():
