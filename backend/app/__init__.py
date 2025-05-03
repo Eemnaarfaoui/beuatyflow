@@ -4,10 +4,18 @@ from sqlalchemy import create_engine
 import dns.resolver
 from flask_jwt_extended import JWTManager
 from .config import Config
+from flask import Flask
+from sqlalchemy import create_engine
+import os
+from .ml.recommender import Recommender
+from .routes.recommander_routes import recommander_bp
+from .routes.fiabilite_routes import ml_bp
 
 def create_app():
     app = Flask(__name__)
     CORS(app)  # Cela permet de résoudre les problèmes CORS pendant le développement.
+    app.register_blueprint(ml_bp)
+    app.register_blueprint(recommander_bp)
 
     # Connection config
     app.config.from_object(Config)
@@ -36,5 +44,20 @@ def create_app():
 
     # Configuration de JWT
     jwt = JWTManager(app)
+    @app.before_request
+    def before_request():
+        from flask import g
+        g.recommender = Recommender(
+            server='FATMA_ZINE\\FATMAZINE',
+            database='DW_SupplyChain',
+            driver='ODBC Driver 17 for SQL Server'
+        )
+    @app.teardown_appcontext
+    def shutdown_recommender(error=None):
+        from flask import g
+        if hasattr(g, 'recommender'):
+            g.recommender.close_connection()
+            if error:
+                print(f"Erreur lors de la fermeture de la connexion : {error}")
 
     return app
