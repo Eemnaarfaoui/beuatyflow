@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DatabaseConfig:
-    server: str = r'AMINE\SQLEXPRESS'
+    server :str = r'localhost\SQLEXPRESS'
     database: str = 'DW_SupplyChain'
     driver: str = 'ODBC Driver 17 for SQL Server'
 
