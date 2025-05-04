@@ -1,4 +1,3 @@
-# backend/app/ml/preferences.py
 import pandas as pd
 from sqlalchemy import create_engine
 from sklearn.ensemble import RandomForestClassifier
@@ -178,4 +177,4 @@ class ModeleClassificationRF:
                 return self.label_encoders['preference_cos'].inverse_transform(prediction)[0]
             except Exception as e:
                 return {"error": f"Erreur de décodage : {e}"}
-        return {"error": "LabelEncoder 'preference_cos' manquant"}
+        return {"error": "LabelEncoder 'preference_cos' manquant"} 
