@@ -19,3 +19,11 @@ backend/app/routes/__pycache__/inventory_routes.cpython-313.pyc
 backend/app/routes/__pycache__/sales_routes.cpython-313.pyc
 backend/app/routes/__pycache__/user_routes.cpython-313.pyc
 backend/app/routes/__pycache__
+backend/app/__pycache__/__init__.cpython-313.pyc
+backend/app/__pycache__/__init__.cpython-313.pyc
+backend/app/ml/__pycache__/anomaly_detection.cpython-313.pyc
+backend/app/ml/__pycache__/supplier_recommender.cpython-313.pyc
+backend/app/ml/__pycache__/prophet_model.cpython-313.pyc
+backend/app/routes/__pycache__/sales_routes.cpython-313.pyc
+backend/app/routes/__pycache__/user_routes.cpython-313.pyc
+backend/app/routes/__pycache__/warehouse_routes.cpython-313.pyc

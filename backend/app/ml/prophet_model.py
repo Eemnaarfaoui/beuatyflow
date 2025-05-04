@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from functools import lru_cache
 
 def connect_db():
-    connection_str = "mssql+pyodbc://AMINE/SA_Supply_Chaine?trusted_connection=yes&driver=ODBC+Driver+17+for+SQL+Server"
+    connection_str = "mssql+pyodbc://localhost/SA_Supply_Chaine?trusted_connection=yes&driver=ODBC+Driver+17+for+SQL+Server"
     return create_engine(connection_str)
 
 def get_data():

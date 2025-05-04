@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
+import { OrderTable } from "../components/ordersTable";
 
 @Component({
   selector: 'app-sales-orders',
-  imports: [],
+  imports: [OrderTable],
   template: `
-  <div class="grid grid-cols-12 gap-8">
-     Orders
-  </div>`,
+ <app-orders-table> </app-orders-table> `,
 })
 export class OrdersComponent {
 

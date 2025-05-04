@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 
 class SupplierRecommender:
     def __init__(self):
-        self.server = r'AMINE\SQLEXPRESS'
+        self.server = r'localhost\SQLEXPRESS'
         self.database = 'DW_SupplyChain'
     
     def connect_db(self):

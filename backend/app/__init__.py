@@ -27,8 +27,8 @@ def create_app():
     from .routes.user_routes import init_user_routes
     init_user_routes(app)
 
-    from .routes.inventory_routes import init_inventory_routes
-    init_inventory_routes(app)
+    #from .routes.inventory_routes import init_inventory_routes
+    #init_inventory_routes(app)
 
     # Ajouter les routes des entrepôts
     from .routes.warehouse_routes import init_storage_routes

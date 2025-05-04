@@ -14,7 +14,7 @@ from ..ml.predicting_sales import TimeSeriesLinearRegression, fetch_sales_data, 
 
 
 # Import necessary functions
-from ..data_fetcher import fetch_sales_data, fetch_shops_dw, add_shops_sa, update_shop_in_sa,delete_shop_sa
+from ..data_fetcher import fetch_sales_data, fetch_shops_dw, add_shops_sa, update_shop_in_sa,delete_shop_sa,fetch_orders_sa
 from ..data_fetcher import preprocess_data
 
 
@@ -34,13 +34,12 @@ def init_sales_routes(app):
             # If user not found or not admin, deny access
             if not user or user.get("role") != "admin":
                 return jsonify({"error": "Access forbidden: Admins only"}), 403
+            data = fetch_sales_data # Assumes fetch_data will use Flask's dynamic config
 
+            # Convert DataFrame to JSON format
+            data_json = data.to_dict(orient="records") 
             # Fetch sales data from SQL Server
-            engine = app.config['SQL_ENGINE']
-            with engine.connect() as connection:
-                result = connection.execute(text("SELECT TOP 100 * FROM fact_sales"))
-                rows = [dict(row._mapping) for row in result]
-                return jsonify(rows)
+            
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
@@ -186,7 +185,7 @@ def init_sales_routes(app):
 
     ############# -MACHINE LEARNING- #############
 
-    @app.route('/forecast', methods=['GET'])
+    @app.route('/api/sales-forecast', methods=['GET'])
     def forecast():
         try:
             # Fetch data from SQL Server
@@ -221,3 +220,27 @@ def init_sales_routes(app):
         
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+    ############# -orders - #############
+    @app.route('/api/get-sales-orders', methods=['GET'])
+    @jwt_required()
+    def get_orders():
+        try:
+            user_id = get_jwt_identity()
+            user = users.find_one({"_id": ObjectId(user_id)})
+
+            # If user not found or not admin, deny access
+            if not user or user.get("role") != "admin" and user.get("role") != "sales manager":
+                return jsonify({"error": "Access forbidden: Admins or Sales Managers only"}), 403
+            # Fetch the data from the database
+            data = fetch_orders_sa()  # Assumes fetch_data will use Flask's dynamic config
+
+            # Convert DataFrame to JSON format
+            data_json = data.to_dict(orient="records")  # 'records' will give you a list of dicts
+            
+            # Return the data as a JSON response
+            return jsonify(data_json), 200
+
+        except Exception as e:
+            # If there is an error, return an error response
+            return jsonify({"error": f"Error fetching data: {e}"}), 500

@@ -35,7 +35,7 @@ def fetch_sales_data():
     - DataFrame containing the result of the SQL query
     """
     query = """
-    SELECT fs.quantity, dd.fulldate, dg.id_geo, ds.shop_id, dc_p.category_name
+    SELECT fs.quantity, dd.fulldate, dg.id_geo, ds.shop_id, dc_p.category_name,dp.product_name
     FROM fact_sales fs
     JOIN dim_products dp ON fs.product_fk = dp.product_pk
     JOIN dim_geo dg ON fs.geo_fk = dg.geo_pk
@@ -241,6 +241,30 @@ def delete_shop_sa(shopid):
         print(f"Error deleting shop from Shops_SA: {e}")
         raise
 
+################# ORDERS CRUD #######################
+def fetch_orders_sa():
+    """
+    Fetch all orders from the Orders_SA table.
+
+    Returns:
+    - DataFrame containing the result of the SQL query
+    """
+    query = """
+    SELECT 
+        OrderID, OrderDate, ShopID, ShippingAddress, ProductName, Quantity, ProductId, 
+        Shipping_City, Shipping_Country, Shipping_ID, Shop_City, Shop_Country, Shop_Geo_ID
+    FROM Orders_SA
+    """
+    try:
+        conn = get_sa_connection()
+        data = pd.read_sql(query, conn)
+        conn.close()
+        if data.empty:
+            raise ValueError("No data fetched from the Orders_SA table")
+        return data
+    except Exception as e:
+        print(f"Error fetching orders: {e}")
+        raise
 
 
 
@@ -438,13 +462,6 @@ def delete_warehouse_sa(warehouseid):
         raise
 ##########inventory########################
 # --- READ (avec jointure) ---
-import pandas as pd
-from sqlalchemy import create_engine, text
-
-def get_sa_connection():
-    # Remplacer par votre chaîne de connexion
-    engine = create_engine("mssql+pyodbc://username:password@server/database?driver=ODBC+Driver+17+for+SQL+Server")
-    return engine.connect()
 
 def fetch_inventory_sa():
     query = """
