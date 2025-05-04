@@ -31,8 +31,8 @@ def create_app():
     init_inventory_routes(app)
 
     # Ajouter les routes des entrepôts
-    from .routes.warehouse_routes import init_warehouse_routes
-    init_warehouse_routes(app)
+    from .routes.warehouse_routes import init_storage_routes
+    init_storage_routes(app)
 
     from app.routes.anomaly_routes import anomaly_bp
     app.register_blueprint(anomaly_bp)
