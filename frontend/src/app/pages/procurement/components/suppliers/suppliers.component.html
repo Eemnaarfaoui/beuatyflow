@@ -1,0 +1,40 @@
+<h3>Répartition des fournisseurs par fiabilité</h3>
+<canvas id="supplierReliabilityChart" width="400" height="250"></canvas>
+<h2>Fiabilité des Fournisseurs</h2>
+
+<div *ngIf="supplierReliabilityData$?.length; else loading">
+  <table>
+    <thead>
+      <tr>
+        <th>ID Fournisseur</th>
+        <th>Catégorie de Fiabilité</th>
+        <th>Score de Fiabilité</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of supplierReliabilityData$">
+        <td>{{ data.supplier_FK }}</td>
+        <td [ngClass]="{
+          'Peu-fiable': data.Reliability_Category === 'Peu fiable',
+          'Fiable': data.Reliability_Category === 'Fiable',
+          'Très-fiable': data.Reliability_Category === 'Très fiable'
+        }">
+          {{ data.Reliability_Category }}
+        </td>
+        <td>
+          <span [ngClass]="{
+            'low': data.Score_Fiabilite_Achat < 0.3,
+            'medium': data.Score_Fiabilite_Achat >= 0.3 && data.Score_Fiabilite_Achat < 0.7,
+            'high': data.Score_Fiabilite_Achat >= 0.7
+          }">
+            {{ data.Score_Fiabilite_Achat | number: '1.2-2' }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<ng-template #loading>
+  <p class="loading">Chargement des données de fiabilité...</p>
+</ng-template>

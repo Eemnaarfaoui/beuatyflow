@@ -38,3 +38,31 @@ def get_supplier_reliability():
     data['Recence_Dernier_Achat'] = (datetime.now() - data['Date_Dernier_Achat']).dt.days
     reliability_data = classify_supplier_reliability(data.copy())
     return jsonify(reliability_data.to_dict(orient='records'))
+
+@ml_bp.route('/supplierReliabilityData', methods=['GET'])
+def supplier_reliability_data():
+    df = load_supplier_data()
+    if df.empty:
+        return jsonify([])  # retourne une liste vide si aucune donnée
+    df['Date_Dernier_Achat'] = pd.to_datetime(df['Date_Dernier_Achat'])
+    df['Recence_Dernier_Achat'] = (datetime.now() - df['Date_Dernier_Achat']).dt.days
+    reliability_df = classify_supplier_reliability(df)
+    return jsonify(reliability_df.to_dict(orient='records'))
+
+@ml_bp.route('/supplierReliabilityChart', methods=['GET'])
+def supplier_reliability_chart():
+    df = load_supplier_data()
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+    df['Date_Dernier_Achat'] = pd.to_datetime(df['Date_Dernier_Achat'])
+    df['Recence_Dernier_Achat'] = (datetime.now() - df['Date_Dernier_Achat']).dt.days
+    reliability_df = classify_supplier_reliability(df)
+    
+    # Compter le nombre de fournisseurs par catégorie
+    category_counts = reliability_df['Reliability_Category'].value_counts().sort_index()
+    return jsonify({
+    "labels": [str(label) for label in category_counts.index],
+    "data": [int(value) for value in category_counts.values]
+})
+
+ 

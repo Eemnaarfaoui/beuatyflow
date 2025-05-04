@@ -1,0 +1,106 @@
+h2 {
+  color: #333;
+  margin-bottom: 1.5rem; /* Augmenter un peu la marge */
+  text-align: center; /* Centrer le titre */
+}
+
+.loading {
+  font-style: italic;
+  color: #777;
+  text-align: center; /* Centrer le message de chargement */
+  margin-top: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem; /* Augmenter la marge au-dessus du tableau */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Ombre plus prononcée */
+  border-radius: 10px; /* Bords plus arrondis */
+  overflow: hidden;
+  border: 1px solid #ddd; /* Ajouter une bordure légère au tableau */
+}
+
+thead {
+  background-color: #f0f0f0; /* Gris légèrement plus clair */
+  border-bottom: 2px solid #ccc; /* Bordure plus épaisse pour l'en-tête */
+}
+
+th {
+  padding: 1rem 1.5rem; /* Augmenter le padding */
+  text-align: left;
+  font-weight: 600; /* Légèrement plus gras */
+  color: #555;
+  text-transform: uppercase; /* Mettre en majuscules */
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9; /* Gris très clair pour les lignes paires */
+}
+
+tbody tr:hover {
+  background-color: #eaeaea; /* Gris clair au survol */
+  transition: background-color 0.2s ease-in-out; /* Transition plus douce */
+}
+
+td {
+  padding: 1rem 1.5rem; /* Augmenter le padding */
+  border-bottom: 1px solid #eee;
+}
+
+/* Styles spécifiques pour la catégorie de fiabilité */
+td:nth-child(2) { /* Cibler la colonne "Catégorie de Fiabilité" */
+  font-weight: 500; /* Légèrement moins gras que l'en-tête */
+}
+
+.Peu-fiable {
+  color: orange; /* Orange comme demandé */
+}
+
+.Fiable {
+  color: green; /* Vert comme demandé */
+}
+
+.Très-fiable {
+  color: #007bff; /* Bleu pour "Très fiable" (tu peux changer la couleur) */
+}
+
+/* Style pour le score de fiabilité */
+td:nth-child(3) { /* Cibler la colonne "Score de Fiabilité" */
+  font-style: normal; /* Ne plus mettre en italique */
+  color: #495057; /* Couleur de texte standard */
+}
+
+.low {
+  color: red;
+  font-weight: bold;
+}
+
+.medium {
+  color: orange;
+  font-weight: bold;
+}
+
+.high {
+  color: green;
+  font-weight: bold;
+}
+
+/* Styles supplémentaires pour la table (tu peux en supprimer si redondant) */
+.reliability-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem; /* Ajuster la marge */
+
+  th,
+  td {
+    padding: 1rem; /* Ajuster le padding */
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+}
