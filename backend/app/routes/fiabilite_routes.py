@@ -1,8 +1,9 @@
-from flask import Blueprint, jsonify, request
-from ..ml.fiabilite import load_supplier_data, calculate_reliability_score, predict_future_purchase, classify_supplier_reliability, train_purchase_prediction_model
+# backend/app/routes/fiabilite_routes.py
+from ..ml.fiabilite import classify_supplier_reliability, load_supplier_data, predict_future_purchase, train_purchase_prediction_model
+from flask import Blueprint, jsonify, request, current_app
+import pyodbc
 from datetime import datetime
 import pandas as pd
-
 ml_bp = Blueprint('ml', __name__, url_prefix='/ml')
 
 @ml_bp.route('/train_model', methods=['POST'])
@@ -43,7 +44,7 @@ def get_supplier_reliability():
 def supplier_reliability_data():
     df = load_supplier_data()
     if df.empty:
-        return jsonify([])  # retourne une liste vide si aucune donnée
+        return jsonify([]) # retourne une liste vide si aucune donnée
     df['Date_Dernier_Achat'] = pd.to_datetime(df['Date_Dernier_Achat'])
     df['Recence_Dernier_Achat'] = (datetime.now() - df['Date_Dernier_Achat']).dt.days
     reliability_df = classify_supplier_reliability(df)
@@ -57,12 +58,78 @@ def supplier_reliability_chart():
     df['Date_Dernier_Achat'] = pd.to_datetime(df['Date_Dernier_Achat'])
     df['Recence_Dernier_Achat'] = (datetime.now() - df['Date_Dernier_Achat']).dt.days
     reliability_df = classify_supplier_reliability(df)
-    
+
     # Compter le nombre de fournisseurs par catégorie
     category_counts = reliability_df['Reliability_Category'].value_counts().sort_index()
     return jsonify({
-    "labels": [str(label) for label in category_counts.index],
-    "data": [int(value) for value in category_counts.values]
+        "labels": [str(label) for label in category_counts.index],
+        "data": [int(value) for value in category_counts.values]
 })
 
- 
+
+
+
+def get_db_connection_sa():
+    server = current_app.config['SERVER']
+    database = current_app.config['STAGING_AREA']  # Connect to SA_Supply_Chain
+    driver = '{' + current_app.config['DRIVER'] + '}'
+    conn_str = (
+        f'DRIVER={driver};'
+        f'SERVER={server};'
+        f'DATABASE={database};'
+        f'Trusted_Connection=yes;'  # Assuming Windows Authentication
+    )
+    try:
+        cnxn = pyodbc.connect(conn_str)
+        return cnxn
+    except pyodbc.Error as ex:
+        sqlstate = ex.args[0]
+        print(f"Database Connection Error (SA): {sqlstate}")
+        return None
+
+def add_supplier_sa(supplierid, suppliername, contact, email, address, city, country, id_geo):
+    cnxn = get_db_connection_sa()
+    if cnxn:
+        try:
+            cursor = cnxn.cursor()
+            sql = """
+                INSERT INTO SA_Supply_Chain.dbo.Suppliers_SA (supplierid, suppliername, contact, email, address, city, country, id_geo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            cursor.execute(sql, supplierid, suppliername, contact, email, address, city, country, id_geo)
+            cnxn.commit()
+        except Exception as e:
+            cnxn.rollback()
+            print(f"Error adding supplier (SA): {e}")  # Log the error
+            raise  # Re-raise the exception to be caught by the route
+        finally:
+            if cnxn:
+                cnxn.close()
+    else:
+        raise Exception("Failed to connect to the SA_Supply_Chain database")
+
+@ml_bp.route('/suppliers', methods=['POST'])
+def add_supplier():
+    try:
+        data = request.get_json()
+        required_fields = ["supplierid", "suppliername", "contact", "email", "address", "city", "country", "id_geo"]
+
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing field {field}"}), 400
+
+        add_supplier_sa(
+            supplierid=data["supplierid"],
+            suppliername=data["suppliername"],
+            contact=data["contact"],
+            email=data["email"],
+            address=data["address"],
+            city=data["city"],
+            country=data["country"],
+            id_geo=data["id_geo"]
+        )
+
+        return jsonify({"message": "Supplier created successfully."}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

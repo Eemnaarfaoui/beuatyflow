@@ -8,4 +8,4 @@ if __name__ == '__main__':
     # - debug=True pour activer le mode débogage (affichage d'erreurs détaillées)
     # - host='0.0.0.0' pour permettre l'écoute sur toutes les interfaces réseau
     # - port=5000 pour spécifier le port de l'application
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)

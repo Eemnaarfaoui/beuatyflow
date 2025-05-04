@@ -1,40 +1,93 @@
-<h3>Répartition des fournisseurs par fiabilité</h3>
-<canvas id="supplierReliabilityChart" width="400" height="250"></canvas>
-<h2>Fiabilité des Fournisseurs</h2>
+<div class="suppliers-container">
+  <div class="chart-section">
+    <h3>Répartition des fournisseurs par fiabilité</h3>
+    <canvas id="supplierReliabilityChart" width="400" height="250"></canvas>
+  </div>
 
-<div *ngIf="supplierReliabilityData$?.length; else loading">
-  <table>
-    <thead>
-      <tr>
-        <th>ID Fournisseur</th>
-        <th>Catégorie de Fiabilité</th>
-        <th>Score de Fiabilité</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let data of supplierReliabilityData$">
-        <td>{{ data.supplier_FK }}</td>
-        <td [ngClass]="{
-          'Peu-fiable': data.Reliability_Category === 'Peu fiable',
-          'Fiable': data.Reliability_Category === 'Fiable',
-          'Très-fiable': data.Reliability_Category === 'Très fiable'
-        }">
-          {{ data.Reliability_Category }}
-        </td>
-        <td>
-          <span [ngClass]="{
-            'low': data.Score_Fiabilite_Achat < 0.3,
-            'medium': data.Score_Fiabilite_Achat >= 0.3 && data.Score_Fiabilite_Achat < 0.7,
-            'high': data.Score_Fiabilite_Achat >= 0.7
-          }">
-            {{ data.Score_Fiabilite_Achat | number: '1.2-2' }}
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="table-section">
+    <h2>Fiabilité des Fournisseurs</h2>
+
+    <div class="add-button-container">
+      <button class="add-supplier-button" (click)="toggleAddForm()">Ajouter un nouveau fournisseur</button>
+    </div>
+
+    <div *ngIf="showAddForm" class="add-form-container">
+      <h3>Ajouter un nouveau fournisseur</h3>
+      <form (ngSubmit)="addNewSupplier()" class="supplier-form">
+        <div class="form-group">
+          <label for="supplierid">ID Fournisseur:</label>
+          <input type="number" id="supplierid" name="supplierid" [(ngModel)]="newSupplier.supplierid" required>
+        </div>
+        <div class="form-group">
+          <label for="suppliername">Nom du fournisseur:</label>
+          <input type="text" id="suppliername" name="suppliername" [(ngModel)]="newSupplier.suppliername" required>
+        </div>
+        <div class="form-group">
+          <label for="contact">Contact:</label>
+          <input type="text" id="contact" name="contact" [(ngModel)]="newSupplier.contact">
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" [(ngModel)]="newSupplier.email">
+        </div>
+        <div class="form-group">
+          <label for="address">Adresse:</label>
+          <input type="text" id="address" name="address" [(ngModel)]="newSupplier.address">
+        </div>
+        <div class="form-group">
+          <label for="city">Ville:</label>
+          <input type="text" id="city" name="city" [(ngModel)]="newSupplier.city">
+        </div>
+        <div class="form-group">
+          <label for="country">Pays:</label>
+          <input type="text" id="country" name="country" [(ngModel)]="newSupplier.country">
+        </div>
+        <div class="form-group">
+          <label for="id_geo">ID Geo:</label>
+          <input type="text" id="id_geo" name="id_geo" [(ngModel)]="newSupplier.id_geo">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="submit-button">Ajouter</button>
+          <button type="button" class="cancel-button" (click)="toggleAddForm()">Annuler</button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngIf="supplierReliabilityData$?.length; else loading" class="reliability-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID Fournisseur</th>
+            <th>Catégorie de Fiabilité</th>
+            <th>Score de Fiabilité</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of supplierReliabilityData$">
+            <td>{{ data.supplier_FK }}</td>
+            <td [ngClass]="{
+              'Peu-fiable': data.Reliability_Category === 'Peu fiable',
+              'Fiable': data.Reliability_Category === 'Fiable',
+              'Très-fiable': data.Reliability_Category === 'Très fiable'
+            }">
+              {{ data.Reliability_Category }}
+            </td>
+            <td>
+              <span [ngClass]="{
+                'low': data.Score_Fiabilite_Achat < 0.3,
+                'medium': data.Score_Fiabilite_Achat >= 0.3 && data.Score_Fiabilite_Achat < 0.7,
+                'high': data.Score_Fiabilite_Achat >= 0.7
+              }">
+                {{ data.Score_Fiabilite_Achat | number: '1.2-2' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #loading>
+      <p class="loading">Chargement des données de fiabilité...</p>
+    </ng-template>
+  </div>
 </div>
-
-<ng-template #loading>
-  <p class="loading">Chargement des données de fiabilité...</p>
-</ng-template>
