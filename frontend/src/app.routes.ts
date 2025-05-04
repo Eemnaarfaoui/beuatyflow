@@ -6,6 +6,7 @@ import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
 import { AuthGuard } from './app/core/auth.guard';
 import { PageAccessGuard } from './app/core/pages.guard'; // <-- page-access.guard you created
+import { ChatbootComponent } from './app/pages/chatboot/component/chatboot.component';
 
 export const appRoutes: Routes = [
     {
@@ -51,7 +52,11 @@ export const appRoutes: Routes = [
             { 
                 path: 'admin', 
                 loadChildren: () => import('./app/pages/user_management/admin.routes') 
-            }
+            },
+            {
+                path: 'chatboot',
+                component: ChatbootComponent,
+              },
         ]
     },
     { path: 'landing', component: Landing },

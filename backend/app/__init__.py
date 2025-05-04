@@ -1,4 +1,5 @@
 # backend/app/__init__.py
+from urllib import request
 from flask import Flask
 from flask_cors import CORS
 from sqlalchemy import create_engine
@@ -11,6 +12,8 @@ from .routes.sales_routes import init_sales_routes
 from .routes.user_routes import init_user_routes
 from .routes.inventory_routes import init_inventory_routes
 from .routes.warehouse_routes import init_warehouse_routes
+from flask import Flask, request, jsonify
+
 
 def create_app():
     app = Flask(__name__)
@@ -58,6 +61,41 @@ def create_app():
                 print(f"Erreur lors de la fermeture de la connexion : {error}")
 
     return app
+recommender = Recommender(
+    server="FATMA_ZINE\\FATMAZINE",
+    database="DW_SupplyChain",
+    driver="ODBC Driver 17 for SQL Server"
+)
+# Créer l'application Flask en appelant la fonction create_app
+app = create_app()
+
+@app.route('/start-chat', methods=['POST'])
+def start_chat():
+    user_id = request.json.get('user_id')  # Assuming user_id is passed in the request
+    message = recommender.start_chat(user_id)
+    return jsonify({"message": message})
+
+@app.route('/handle-message', methods=['POST'])
+def handle_message():
+    user_id = request.json.get('user_id')
+    message = request.json.get('message')
+    
+    response_message = recommender.handle_message(message)
+    return jsonify({"message": response_message})
+
+@app.route('/get-recommendations', methods=['POST'])
+def get_recommendations():
+    user_id = request.json.get('user_id')
+    recommendations = recommender.get_recommendations_for_user(user_id)
+    if not recommendations.empty:
+        recommendations_list = [
+            {"Product_Name": row['Product_Name'], "Brand_Name": row['Brand_Name'], "Unit_Price": row['Unit_Price']}
+            for _, row in recommendations.iterrows()
+        ]
+        return jsonify({"recommendations": recommendations_list})
+    else:
+        return jsonify({"recommendations": "Aucune recommandation disponible."})
+
 
 if __name__ == '__main__':
     app = create_app()

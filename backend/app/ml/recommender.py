@@ -1,4 +1,4 @@
-# ml/recommender.py
+# recommander.py
 import pandas as pd
 from sqlalchemy import create_engine
 from sklearn.cluster import KMeans
@@ -14,10 +14,11 @@ class Recommender:
         self.df_users = self._load_users_data()
         self.df_products = self._load_products_data()
         self.preference_features = ['interet_rec', 'objectif_cos', 'probleme_peau', 'preference_cos',
-                                     'type_peau', 'type_cheveux', 'marque_tunisiennes_util',
-                                     'pref_internationale', 'local_VS_inter', 'type_achat', 'critere_achat']
+                                    'type_peau', 'type_cheveux', 'marque_tunisiennes_util',
+                                    'pref_internationale', 'local_VS_inter', 'type_achat', 'critere_achat']
         self.n_preference_clusters = 5
         self.recommendations_preference_budget = self._generate_recommendations()
+        self.user_preferences = {}
 
     def _create_engine(self):
         connection_string = f"mssql+pyodbc://@{self.server}/{self.database}?driver={self.driver}&trusted_connection=yes"
@@ -78,7 +79,7 @@ class Recommender:
         return recommendations
 
     def get_recommendations_for_user(self, user_id):
-        user = self.df_users[self.df_users['Rec_PK'] == user_id] # Assurez-vous que 'Rec_PK' est l'identifiant unique de l'utilisateur
+        user = self.df_users[self.df_users['Rec_PK'] == user_id]
         if not user.empty:
             preference_cluster = user.iloc[0]['preference_cluster']
             return self.recommendations_preference_budget.get(preference_cluster, pd.DataFrame(columns=['Product_Name', 'Brand_Name', 'Category_FK', 'Unit_Price']))
@@ -109,3 +110,61 @@ class Recommender:
     def close_connection(self):
         if self.engine:
             self.engine.dispose()
+
+    def start_chat(self, user_id):
+        self.user_preferences = {}
+        self.user_id = user_id
+        return "Bonjour! Je suis votre assistant beauté. Quels sont vos intérêts en matière de recommandation de produits?"
+
+    def handle_message(self, message):
+        steps = [
+            'interet_rec', 'objectif_cos', 'probleme_peau', 'preference_cos',
+            'type_peau', 'type_cheveux', 'marque_tunisiennes_util', 'pref_internationale',
+            'local_VS_inter', 'type_achat', 'critere_achat', 'budget'
+        ]
+        questions = [
+            "Quel est votre objectif cosmétique principal?",
+            "Avez-vous des problèmes de peau spécifiques?",
+            "Quelle est votre préférence en matière de cosmétiques?",
+            "Quel est votre type de peau?",
+            "Quel est votre type de cheveux?",
+            "Utilisez-vous des marques tunisiennes?",
+            "Préférez-vous les marques internationales?",
+            "Préférez-vous les produits locaux ou internationaux?",
+            "Quel est votre type d'achat?",
+            "Quel est votre critère d'achat principal?",
+            "Quel est votre budget? (Faible, Moyen, Élevé)"
+        ]
+
+        for step, question in zip(steps, questions):
+            if step not in self.user_preferences:
+                self.user_preferences[step] = message
+                return question
+
+        self.user_preferences['budget'] = message
+        recommended_products = self._recommend_from_preferences()
+        if not recommended_products.empty:
+            result = recommended_products[['Product_Name', 'Brand_Name', 'Unit_Price']].head(5)
+            lines = [f"- {row['Product_Name']} ({row['Brand_Name']}) - {row['Unit_Price']} TND" for _, row in result.iterrows()]
+            return "Voici mes recommandations basées sur vos préférences :\n" + "\n".join(lines)
+        else:
+            return "Désolé, je n'ai pas pu trouver de produits correspondant à vos préférences."
+
+    def _recommend_from_preferences(self):
+        if not self.user_preferences:
+            return pd.DataFrame()
+
+        user_input_df = pd.DataFrame([self.user_preferences])
+        all_users_df = self.df_users[self.preference_features].fillna("Inconnu")
+        encoder = OneHotEncoder()
+        encoded_all_users = encoder.fit_transform(all_users_df).toarray()
+        encoded_input = encoder.transform(user_input_df).toarray()
+
+        kmeans = KMeans(n_clusters=self.n_preference_clusters, random_state=42)
+        kmeans.fit(encoded_all_users)
+        cluster_id = kmeans.predict(encoded_input)[0]
+
+        return self.recommendations_preference_budget.get(cluster_id, pd.DataFrame())
+
+    def get_preferences(self):
+        return self.user_preferences
