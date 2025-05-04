@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-storage-invoices',
+  selector: 'app-sales-orders',
   imports: [],
   template: `
   <div class="grid grid-cols-12 gap-8">
-     Invoices
+     Orders
   </div>`,
 })
-export class InvoicesComponent {
+export class OrdersComponent {
 
 }

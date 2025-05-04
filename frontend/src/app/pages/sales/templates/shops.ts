@@ -3,7 +3,7 @@ import { ShopTable } from "../components/shopsTable";
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { UsersTable } from '../../user_management/components/usersTable';
-import { ShopsFormComponent } from "../components/shopForm";
+import { ShopsFormComponent } from "../components/shopsForm";
 
 @Component({
   selector: 'app-sales-shops',

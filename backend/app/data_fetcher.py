@@ -273,3 +273,271 @@ def preprocess_data(df):
     df = df.fillna(0)
     
     return df
+
+
+##########storage##############################
+def fetch_storage_data():
+    """
+    Fetch data from the database using dynamic connection configuration.
+    
+    Returns:
+    - DataFrame containing the result of the SQL query
+    """
+    query = """
+       SELECT 
+          fs.warehouse_FK,
+          fs.product_FK,
+          fs.rest_quantity,
+          fs.predicted_quantity,
+          dp.Product_Name,
+          dg.City,
+          dg.Country,
+          dw.Warehouse_Name,
+          dw.Warehouse_ID,
+          dw.Cluster,
+          dw.Capacity
+        FROM DW_Supply_Chain.dbo.Fact_Storage AS fs
+         JOIN Dim_Warehouses AS dw ON dw.Warehouse_PK = fs.warehouse_FK
+        JOIN Dim_Products AS dp ON dp.Product_PK = fs.product_FK
+        JOIN Dim_Geo AS dg ON dg.Geo_PK = dw.Geo_FK
+        """
+
+    
+    try:
+        # Use the dynamic parameters to get the database connection
+        conn = get_db_connection()
+        
+        # Fetch the data from the database
+        data = pd.read_sql(query, conn)
+        
+        # Close the connection
+        conn.close()
+        
+        # Ensure the data is structured correctly
+        if data.empty:
+            raise ValueError("No data fetched from database")
+        return data
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        raise
+
+## READ
+def fetch_warehouses_dw():
+    query = """SELECT * FROM Warehouses_SA"""
+
+    try:
+        conn = get_sa_connection()
+        data = pd.read_sql(query, conn)
+        conn.close()
+
+        if data.empty:
+            raise ValueError("No data fetched from database")
+        return data
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+        raise
+
+# CREATE
+def add_warehouse_sa(warehouseid, warehousename, location, capacity, city, country):
+    id_geo = f"{city}_{country}".replace(" ", "_")
+    insert_query = """
+    INSERT INTO Warehouses_SA (warehouseid, warehousename, location, capacity, id_geo, city, country)
+    VALUES (:warehouseid, :warehousename, :location, :capacity, :id_geo, :city, :country)
+    """
+    
+    try:
+        conn = get_sa_connection()
+        conn.execute(
+            text(insert_query),
+            {
+                "warehouseid": warehouseid,
+                "warehousename": warehousename,
+                "location": location,
+                "capacity": capacity,
+                "id_geo": id_geo,
+                "city": city,
+                "country": country,
+                
+            }
+        )
+        conn.commit()
+        conn.close()
+        print(f"Warehouse '{warehousename}' inserted successfully into Warehouses_SA.")
+    except Exception as e:
+        print(f"Error inserting warehouse into Warehouses_SA: {e}")
+        raise
+
+# UPDATE
+def update_warehouse_in_sa(warehouseid, warehousename, location, capacity, city, country):
+    id_geo = f"{city}_{country}".replace(" ", "_")
+
+    conn = get_sa_connection()
+    check_query = "SELECT COUNT(*) AS count FROM Warehouses_SA WHERE warehouseid = :warehouseid"
+    result = conn.execute(text(check_query), {"warehouseid": warehouseid})
+    row = result.fetchone()
+
+    if row is None or row.count == 0:
+        conn.close()
+        raise ValueError(f"Warehouse with ID '{warehouseid}' not found.")
+    
+    update_query = """
+    UPDATE Warehouses_SA
+    SET 
+        warehousename = :warehousename,
+        location = :location,
+        capacity = :capacity,
+        id_geo = :id_geo,
+        city = :city,
+        country = :country
+        
+    WHERE 
+        warehouseid = :warehouseid
+    """
+    try:
+        conn = get_sa_connection()
+        result = conn.execute(
+            text(update_query),
+            {
+                "warehouseid": warehouseid,
+                "warehousename": warehousename,
+                "location": location,
+                "capacity": capacity,
+                "id_geo": id_geo,
+                "city": city,
+                "country": country,
+            }  
+        )    
+         
+        conn.commit()
+        conn.close()
+
+        if result.rowcount == 0:
+            print(f"No warehouse found with warehouseid '{warehouseid}'. No update done.")
+        else:
+            print(f"Warehouse '{warehouseid}' updated successfully with new id_geo '{id_geo}'.")
+    except Exception as e:
+        print(f"Error updating warehouse in Warehouses_SA: {e}")
+        raise
+
+# DELETE
+def delete_warehouse_sa(warehouseid):
+    delete_query = "DELETE FROM Warehouses_SA WHERE warehouseid = :warehouseid"
+    
+    try:
+        conn = get_sa_connection()
+        result = conn.execute(text(delete_query), {"warehouseid": warehouseid})
+        conn.commit()
+        conn.close()
+
+        if result.rowcount == 0:
+            print(f"No warehouse found with ID '{warehouseid}'. No deletion done.")
+        else:
+            print(f"Warehouse with ID '{warehouseid}' deleted successfully from Warehouses_SA.")
+    except Exception as e:
+        print(f"Error deleting warehouse from Warehouses_SA: {e}")
+        raise
+##########inventory########################
+# --- READ (avec jointure) ---
+import pandas as pd
+from sqlalchemy import create_engine, text
+
+def get_sa_connection():
+    # Remplacer par votre chaîne de connexion
+    engine = create_engine("mssql+pyodbc://username:password@server/database?driver=ODBC+Driver+17+for+SQL+Server")
+    return engine.connect()
+
+def fetch_inventory_sa():
+    query = """
+    SELECT 
+        I.Warehouse_ID,
+        I.Warehouse_Name,
+        I.Location,
+        I.Product_ID,
+        I.Quantity,
+        P.productname
+    FROM [SA_Supply_Chain].[dbo].[Inventory_SA] I
+    LEFT JOIN [SA_Supply_Chain].[dbo].[Products_SA] P
+        ON I.Product_ID = P.productid
+    """
+    try:
+        conn = get_sa_connection()
+        data = pd.read_sql(query, conn)
+        conn.close()
+        if data.empty:
+            raise ValueError("No inventory data found.")
+        return data
+    except Exception as e:
+        print(f"Error fetching inventory data: {e}")
+        raise
+
+def add_inventory_sa(warehouse_id, warehouse_name, location, product_name, quantity):
+    query = """
+    INSERT INTO [SA_Supply_Chain].[dbo].[Inventory_SA] (
+       Warehouse_ID, Warehouse_Name, Location, Product_ID, Quantity
+    )
+    VALUES (
+      :warehouse_id, :warehouse_name, :location, 
+      (SELECT productid FROM [SA_Supply_Chain].[dbo].[Products_SA] WHERE productname = :product_name),
+      :quantity
+    )
+    """
+    try:
+        conn = get_sa_connection()
+        conn.execute(text(query), {
+            "warehouse_id": warehouse_id,
+            "warehouse_name": warehouse_name,
+            "location": location,
+            "product_name": product_name,
+            "quantity": quantity
+        })
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error inserting inventory: {e}")
+        raise
+
+def update_inventory_sa(warehouse_id, warehouse_name, location, product_name, quantity):
+    query = """
+    UPDATE [SA_Supply_Chain].[dbo].[Inventory_SA]
+    SET Warehouse_Name = :warehouse_name,
+        Location = :location,
+        Product_ID = (SELECT productid FROM [SA_Supply_Chain].[dbo].[Products_SA] WHERE productname = :product_name),
+        Quantity = :quantity
+    WHERE Warehouse_ID = :warehouse_id
+    """
+    try:
+        conn = get_sa_connection()
+        result = conn.execute(text(query), {
+            "warehouse_id": warehouse_id,
+            "warehouse_name": warehouse_name,
+            "location": location,
+            "product_name": product_name,
+            "quantity": quantity
+        })
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error updating inventory: {e}")
+        raise
+
+def delete_inventory_sa(warehouse_id):
+    query = "DELETE FROM [SA_Supply_Chain].[dbo].[Inventory_SA] WHERE Warehouse_ID = :warehouse_id"
+    try:
+        conn = get_sa_connection()
+        result = conn.execute(text(query), {"warehouse_id": warehouse_id})
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error deleting inventory: {e}")
+        raise
+
+def fetch_products_sa():
+    query = "SELECT productid, productname FROM [SA_Supply_Chain].[dbo].[Products_SA]"
+    try:
+        conn = get_sa_connection()
+        data = pd.read_sql(query, conn)
+        conn.close()
+        return data
+    except Exception as e:
+        print(f"Error fetching products: {e}")
+        raise
