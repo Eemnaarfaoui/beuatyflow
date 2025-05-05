@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { ProductsComponent } from './templates/products';
-import { SuppliersComponent } from './templates/suppliers';
 import { PowerBiComponent } from './templates/powerbi';
+import { SuppliersComponent } from './components/suppliers/suppliers.component';
 
 
 export default [
