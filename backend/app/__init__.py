@@ -9,7 +9,7 @@ from .config import Config
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)  # Cela permet de résoudre les problèmes CORS pendant le développement.
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Connection config
     app.config.from_object(Config)
@@ -46,7 +46,8 @@ def create_app():
     app.register_blueprint(recommendation_bp)
 
     from .routes.recommander_routes import recommender_bp
-    app.register_blueprint(recommender_bp) 
+    app.register_blueprint(recommender_bp, url_prefix='/recommender')
+
  
 
     from .routes.fiabilite_routes import ml_bp

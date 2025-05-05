@@ -1,28 +1,23 @@
 from flask import Blueprint, jsonify, request, g
 from ..ml.recommender import Recommender  
 
-
 recommender_bp = Blueprint('recommender', __name__)
 
 @recommender_bp.route('/chat/<int:user_id>/start', methods=['GET'])
 def start_chat(user_id):
-    """Starts a new chat session with the chatbot for a given user."""
     response = g.recommender.start_chat(user_id)
     return jsonify({'response': response})
 
 @recommender_bp.route('/chat/<int:user_id>/message', methods=['POST'])
 def handle_chat_message(user_id):
-    """Handles a message from the user in the chat."""
     message = request.get_json()['message']
     response = g.recommender.handle_message(message)
     return jsonify({'response': response})
 
 @recommender_bp.route('/chat/<int:user_id>/preferences', methods=['GET'])
 def get_user_preferences(user_id):
-    """Retrieves the user's preferences collected during the chat."""
     preferences = g.recommender.get_preferences()
     return jsonify(preferences)
-
 
 @recommender_bp.route('/utilisateur/<int:user_id>', methods=['GET'])
 def get_user_recommendations(user_id):

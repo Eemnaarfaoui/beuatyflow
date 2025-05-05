@@ -64,8 +64,7 @@ def supplier_reliability_chart():
     return jsonify({
         "labels": [str(label) for label in category_counts.index],
         "data": [int(value) for value in category_counts.values]
-})
-
+    })  
 
 
 
