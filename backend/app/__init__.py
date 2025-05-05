@@ -1,8 +1,10 @@
-from flask import Flask
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from sqlalchemy import create_engine
 import dns.resolver
 from flask_jwt_extended import JWTManager
+
+from .ml.recommender import Recommender
 from .config import Config
 
 def create_app():
@@ -43,7 +45,32 @@ def create_app():
     from app.routes.recommendation_routes import recommendation_bp
     app.register_blueprint(recommendation_bp)
 
+    from .routes.recommander_routes import recommender_bp
+    app.register_blueprint(recommender_bp) 
+ 
+
+    from .routes.fiabilite_routes import ml_bp
+    app.register_blueprint(ml_bp)
+
+
+
     # Configuration de JWT
     jwt = JWTManager(app)
+    @app.before_request
+    def before_request():
+        from flask import g
+        g.recommender = Recommender(
+            server=app.config['SERVER'],
+            database=app.config['DATAWAREHOUSE'],
+            driver=app.config['DRIVER']
+        )
+    @app.teardown_appcontext
+    def shutdown_recommender(error=None):
+        from flask import g
+        if hasattr(g, 'recommender'):
+            g.recommender.close_connection()
+            if error:
+                print(f"Erreur lors de la fermeture de la connexion : {error}")
 
     return app
+
