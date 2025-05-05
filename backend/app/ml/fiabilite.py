@@ -38,7 +38,7 @@ RELIABILITY_BINS = [0.0, 0.3, 0.7, 1.0]
 RELIABILITY_LABELS = ['Peu fiable', 'Fiable', 'Très fiable']
 
 # Configuration de la base de données
-SERVER = "FATMA_ZINE\\FATMAZINE"
+SERVER = "localhost"
 DATABASE = "DW_SupplyChain"
 DRIVER = "ODBC Driver 17 for SQL Server"
 DRIVER_ENCODED = DRIVER.replace(" ", "+")
