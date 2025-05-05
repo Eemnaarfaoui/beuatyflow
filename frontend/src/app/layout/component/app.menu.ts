@@ -30,7 +30,7 @@ export class AppMenu {
     this.model = [
       {
         label: 'Home',
-        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },{ label: 'Chatboot', icon: 'pi pi-fw pi-home', routerLink: ['/chatboot'] }]
+        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },{ label: 'Chatbot', icon: 'pi pi-fw pi-prime', routerLink: ['/chatboot'] }]
       },
       {
         label: 'Departments',
