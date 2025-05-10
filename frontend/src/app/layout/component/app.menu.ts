@@ -57,7 +57,7 @@ export class AppMenu {
         icon: 'pi pi-fw pi-shopping-bag',
         items: [
           {label: 'Overview', icon: 'pi pi-fw pi-shopping-bag', routerLink: ['/sales/overview']},
-          { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/products'] },
+        //  { label: 'Products', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/products'] },
           { label: 'Shops', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/shops'] },
           { label: 'Orders', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/orders'] },
           { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/sales/powerbi'] }
@@ -70,7 +70,7 @@ export class AppMenu {
         label: 'Storage',
         icon: 'pi pi-fw pi-warehouse',
         items: [
-          //{ label: 'Inventory', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/warehouses'] },
+          { label: 'Inventory', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/inventory'] },
           { label: 'Warehouses', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/warehouses'] },
          // { label: 'Invoices', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/invoices'] },
           { label: 'Power BI', icon: 'pi pi-fw pi-warehouse', routerLink: ['/storage/powerbi'] }

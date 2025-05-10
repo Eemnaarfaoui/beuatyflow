@@ -472,8 +472,8 @@ def fetch_inventory_sa():
         I.Product_ID,
         I.Quantity,
         P.productname
-    FROM [SA_Supply_Chain].[dbo].[Inventory_SA] I
-    LEFT JOIN [SA_Supply_Chain].[dbo].[Products_SA] P
+    FROM [Inventory_SA] I
+    LEFT JOIN [Products_SA] P 
         ON I.Product_ID = P.productid
     """
     try:

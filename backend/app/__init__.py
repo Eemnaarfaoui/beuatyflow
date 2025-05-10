@@ -26,6 +26,9 @@ def create_app():
     from .routes.sales_routes import init_sales_routes
     init_sales_routes(app)
 
+    from .routes.kpi_dash_routes import init_kpi_routes
+    init_kpi_routes(app)
+
     from .routes.user_routes import init_user_routes
     init_user_routes(app)
 
