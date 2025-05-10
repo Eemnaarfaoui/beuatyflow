@@ -1,23 +1,23 @@
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms'; // Import FormsModule
-import { CommonModule } from '@angular/common'; // Import CommonModule
+import { Component, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-chatboot',
-  standalone: true,  // Mark the component as standalone
+  standalone: true,
   templateUrl: './chatboot.component.html',
   styleUrls: ['./chatboot.component.scss'],
-  imports: [FormsModule, CommonModule, HttpClientModule]  // Add CommonModule here
+  imports: [FormsModule, CommonModule, HttpClientModule]
 })
-
-export class ChatbootComponent {
+export class ChatbootComponent implements AfterViewChecked {
   userMessage: string = '';
-  messages: { role: string, text: string }[] = []; // Track chat messages
-  currentQuestionIndex = 0; 
-  userId: number = 1;  // Add a sample user ID for testing, you can set this dynamically
+  messages: { role: string, text: string }[] = [];
+  currentQuestionIndex = 0;
+  userId: number = 1;
 
-  // List of predefined questions to ask
+  @ViewChild('chatBox') private chatBox!: ElementRef;
+
   questions = [
     "Bonjour! Je suis votre assistant beauté. Quels sont vos intérêts en matière de recommandation de produits?",
     "Quel est votre objectif cosmétique principal? (e.g., Hydratation, anti-âge, acné)",
@@ -37,29 +37,32 @@ export class ChatbootComponent {
     this.addAssistantMessage(this.questions[this.currentQuestionIndex]);
   }
 
-  // Function to handle sending a message
+  ngAfterViewChecked(): void {
+    this.scrollToBottom();
+  }
+
+  private scrollToBottom(): void {
+    try {
+      this.chatBox.nativeElement.scrollTop = this.chatBox.nativeElement.scrollHeight;
+    } catch (err) { }
+  }
+
   sendMessage(): void {
     if (this.userMessage.trim()) {
-      // Display user's message
       this.messages.push({ role: 'user', text: this.userMessage });
-      
-      // Get next question for the assistant
       this.currentQuestionIndex++;
 
-      // If we have more questions, the assistant will ask the next one
       if (this.currentQuestionIndex < this.questions.length) {
         this.addAssistantMessage(this.questions[this.currentQuestionIndex]);
       } else {
-        // Once all questions are answered, give recommendations (this can be modified)
         this.addAssistantMessage("Merci pour vos réponses. Je vais vous donner des recommandations!");
-        this.getRecommendations();  // Make sure to call the getRecommendations function
+        this.getRecommendations();
       }
 
-      this.userMessage = '';  // Reset the input after sending
+      this.userMessage = '';
     }
   }
 
-  // Add message from the assistant
   addAssistantMessage(text: string): void {
     this.messages.push({ role: 'assistant', text: text });
   }
@@ -80,5 +83,4 @@ export class ChatbootComponent {
         console.error(error);
       });
   }
-  
 }
