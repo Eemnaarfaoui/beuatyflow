@@ -13,7 +13,7 @@ import pandas as pd
 
 
 # Import necessary functions
-from ..data_fetcher import fetch_storage_data, fetch_warehouses_dw, add_warehouse_sa, update_warehouse_in_sa,delete_warehouse_sa
+from ..data_fetcher import fetch_storage_data, fetch_warehouses_dw, add_warehouse_sa, update_warehouse_in_sa,delete_warehouse_sa, fetch_inventory_sa
 
 
 
@@ -179,3 +179,26 @@ def init_storage_routes(app):
 
         except Exception as e:
            return jsonify({"error": str(e)}), 500
+
+    @app.route('/api/get-inventory', methods=['GET'])
+    @jwt_required()
+    def get_inventory():
+        try:
+            user_id = get_jwt_identity()
+            user = users.find_one({"_id": ObjectId(user_id)})
+
+            # If user not found or not admin, deny access
+            if not user or user.get("role") != "admin" and user.get("role") != "Logistics Manager":
+                return jsonify({"error": "Access forbidden: Admins or Logistics Managers only"}), 403
+            # Fetch the data from the database
+            data = fetch_inventory_sa()  # Assumes fetch_data will use Flask's dynamic config
+
+            # Convert DataFrame to JSON format
+            data_json = data.to_dict(orient="records")  # 'records' will give you a list of dicts
+            
+            # Return the data as a JSON response
+            return jsonify(data_json), 200
+
+        except Exception as e:
+            # If there is an error, return an error response
+            return jsonify({"error": f"Error fetching data: {e}"}), 500

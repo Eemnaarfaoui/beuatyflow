@@ -23,4 +23,8 @@ getAllWarehouses() {
   deleteWarehouse(id: number) {
     return this.http.delete(`${this.apiUrl}/delete-warehouse/${id}`);
   }
+
+getInventory(){
+  return this.http.get<any>(`${this.apiUrl}/get-inventory`);
+}
 }
