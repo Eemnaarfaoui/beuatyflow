@@ -1,5 +1,6 @@
 # config.py or inside create_app function in __init__.py
 class Config:
+    SECRET_KEY= 'BeautyFlow'
     SERVER = "localhost"
     DATAWAREHOUSE = "DW_SupplyChain"
     STAGING_AREA ="SA_Supply_Chaine"

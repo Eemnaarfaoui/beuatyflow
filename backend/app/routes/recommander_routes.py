@@ -1,45 +1,61 @@
-from flask import Blueprint, jsonify, request, g
-from ..ml.recommender import Recommender  
+# backend/recommender_api.py
+from flask import Blueprint, jsonify, request, session, current_app
+
+from flask_cors import CORS
+import pandas as pd
+
+from ..ml.recommender import Recommender
 
 recommender_bp = Blueprint('recommender', __name__)
+CORS(recommender_bp)
 
-@recommender_bp.route('/chat/<int:user_id>/start', methods=['GET'])
-def start_chat(user_id):
-    response = g.recommender.start_chat(user_id)
-    return jsonify({'response': response})
+# Instancier le Recommender au niveau de l'application
+recommender_instance = None
 
-@recommender_bp.route('/chat/<int:user_id>/message', methods=['POST'])
-def handle_chat_message(user_id):
+@recommender_bp.before_app_request
+def initialize_recommender():
+    global recommender_instance
+    if recommender_instance is None:
+        recommender_instance = Recommender(
+            server=current_app.config['SERVER'],
+            database=current_app.config['DATAWAREHOUSE'],
+            driver=current_app.config['DRIVER']
+        )
+
+@recommender_bp.route('/chat/start', methods=['GET'])
+def start_chat():
+    session['user_preferences'] = {}
+    session['current_step_index'] = 0
+    return jsonify({'response': recommender_instance.questions[0]})
+
+@recommender_bp.route('/chat/message', methods=['POST'])
+def handle_chat_message():
+    print(f"*** DÉBUT handle_chat_message - Étape actuelle dans la session : {session.get('current_step_index')}")
+    if 'user_preferences' not in session:
+        session['user_preferences'] = {}
+    if 'current_step_index' not in session:
+        session['current_step_index'] = 0
+
     message = request.get_json()['message']
-    response = g.recommender.handle_message(message)
-    return jsonify({'response': response})
+    print(f"Message reçu : {message}")
 
-@recommender_bp.route('/chat/<int:user_id>/preferences', methods=['GET'])
-def get_user_preferences(user_id):
-    preferences = g.recommender.get_preferences()
-    return jsonify(preferences)
+    response, next_step_index, updated_preferences = recommender_instance.handle_message(
+        message, session['current_step_index'], session['user_preferences']
+    )
 
-@recommender_bp.route('/utilisateur/<int:user_id>', methods=['GET'])
-def get_user_recommendations(user_id):
-    recommendations_df = g.recommender.get_recommendations_for_user(user_id)
-    recommendations = recommendations_df.to_dict(orient='records')
-    return jsonify(recommendations)
+    session['user_preferences'] = updated_preferences
+    session['current_step_index'] = next_step_index
+    print(f"Étape suivante : {session['current_step_index']}")
+    print(f"Nombre total de questions : {len(recommender_instance.questions)}")
 
-@recommender_bp.route('/utilisateur/<int:user_id>/budget', methods=['GET'])
-def get_user_budget_route(user_id):
-    budget = g.recommender.get_user_budget(user_id)
-    if budget:
-        return jsonify({'user_id': user_id, 'budget': budget})
-    return jsonify({'message': 'Utilisateur non trouvé'}), 404
-
-@recommender_bp.route('/utilisateur/<int:user_id>/cluster', methods=['GET'])
-def get_user_cluster_route(user_id):
-    cluster = g.recommender.get_user_preference_cluster(user_id)
-    if cluster is not None:
-        return jsonify({'user_id': user_id, 'preference_cluster': int(cluster)})
-    return jsonify({'message': 'Utilisateur non trouvé'}), 404
+    if isinstance(response, pd.DataFrame):
+        recommendations_data = response.to_dict('records')
+        return jsonify({'recommendations': recommendations_data})
+    else:
+        return jsonify({'response': response})
 
 @recommender_bp.route('/clusters/profils', methods=['GET'])
 def get_cluster_profiles_route():
-    profiles = g.recommender.get_cluster_profiles()
+    # La fonction get_cluster_profiles n'est plus dans la classe Recommender
+    profiles = {}
     return jsonify(profiles)

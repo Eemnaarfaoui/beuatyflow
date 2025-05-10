@@ -1,9 +1,10 @@
-# recommender.py
+# backend/ml/recommender.py
 import pandas as pd
 from sqlalchemy import create_engine
-from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
+from collections import Counter
 
 class Recommender:
     def __init__(self, server, database, driver):
@@ -14,157 +15,160 @@ class Recommender:
         self.df_users = self._load_users_data()
         self.df_products = self._load_products_data()
         self.preference_features = ['interet_rec', 'objectif_cos', 'probleme_peau', 'preference_cos',
-                                    'type_peau', 'type_cheveux', 'marque_tunisiennes_util',
-                                    'pref_internationale', 'local_VS_inter', 'type_achat', 'critere_achat']
-        self.n_preference_clusters = 5
-        self.recommendations_preference_budget = self._generate_recommendations()
-        self.user_preferences = {}
-
-    def _create_engine(self):
-        connection_string = f"mssql+pyodbc://@{self.server}/{self.database}?driver={self.driver}&trusted_connection=yes"
-        return create_engine(connection_string)
-
-    def _load_users_data(self):
-        return pd.read_sql("SELECT * FROM dbo.Dim_rec", self.engine)
-
-    def _load_products_data(self):
-        return pd.read_sql("SELECT * FROM dbo.Dim_Products", self.engine)
-
-    def _cluster_users_by_preference(self):
-        df_users_preference = self.df_users[self.preference_features].fillna("Inconnu")
-        encoder_preference = OneHotEncoder()
-        user_encoded_preference = encoder_preference.fit_transform(df_users_preference).toarray()
-        kmeans_preference = KMeans(n_clusters=self.n_preference_clusters, random_state=42)
-        self.df_users['preference_cluster'] = kmeans_preference.fit_predict(user_encoded_preference)
-
-    def _generate_recommendations(self):
-        recommendations = {}
-        self._cluster_users_by_preference()
-        for preference_cluster_id in range(self.n_preference_clusters):
-            user_group = self.df_users[self.df_users['preference_cluster'] == preference_cluster_id]
-            budgets = user_group['budget'].dropna().unique()
-            all_prices_for_cluster = pd.DataFrame()
-
-            for budget_value in budgets:
-                if budget_value == "Faible":
-                    min_price = 0
-                    max_price = 20
-                elif budget_value == "Moyen":
-                    min_price = 15
-                    max_price = 50
-                elif budget_value == "Élevé":
-                    min_price = 40
-                    max_price = float('inf')
-                else:
-                    min_price = 0
-                    max_price = float('inf')
-
-                budget_products = self.df_products[(self.df_products['Unit_Price'] >= min_price) & (self.df_products['Unit_Price'] <= max_price)]
-                all_prices_for_cluster = pd.concat([all_prices_for_cluster, budget_products])
-
-            unique_budget_products = all_prices_for_cluster.drop_duplicates(subset=['Product_PK'])
-
-            if not unique_budget_products.empty:
-                category_counts = user_group['Category_FK'].dropna().astype(int).value_counts()
-                most_popular_categories = category_counts.index.tolist()
-                cluster_recommendations = pd.DataFrame()
-                for category_id in most_popular_categories:
-                    category_budget_products = unique_budget_products[unique_budget_products['Category_FK'] == category_id]
-                    if not category_budget_products.empty:
-                        top_products = category_budget_products[['Product_PK', 'Product_Name', 'Brand_Name', 'Category_FK', 'Unit_Price']].head(2)
-                        cluster_recommendations = pd.concat([cluster_recommendations, top_products])
-                recommendations[preference_cluster_id] = cluster_recommendations.head(5)
-            else:
-                recommendations[preference_cluster_id] = pd.DataFrame(columns=['Product_Name', 'Brand_Name', 'Category_FK', 'Unit_Price'])
-        return recommendations
-
-    def get_recommendations_for_user(self, user_id):
-        user = self.df_users[self.df_users['Rec_PK'] == user_id]
-        if not user.empty:
-            preference_cluster = user.iloc[0]['preference_cluster']
-            return self.recommendations_preference_budget.get(preference_cluster, pd.DataFrame(columns=['Product_Name', 'Brand_Name', 'Category_FK', 'Unit_Price']))
-        return pd.DataFrame(columns=['Product_Name', 'Brand_Name', 'Category_FK', 'Unit_Price'])
-
-    def get_user_budget(self, user_id):
-        user = self.df_users[self.df_users['Rec_PK'] == user_id]
-        if not user.empty:
-            return user.iloc[0]['budget']
-        return None
-
-    def get_user_preference_cluster(self, user_id):
-        user = self.df_users[self.df_users['Rec_PK'] == user_id]
-        if not user.empty:
-            return user.iloc[0]['preference_cluster']
-        return None
-
-    def get_cluster_profiles(self):
-        profiles = {}
-        for cluster_id in range(self.n_preference_clusters):
-            cluster_users = self.df_users[self.df_users['preference_cluster'] == cluster_id]
-            if not cluster_users.empty:
-                profiles[cluster_id] = cluster_users[self.preference_features].mode().iloc[0].to_dict()
-            else:
-                profiles[cluster_id] = "Aucun utilisateur dans ce cluster."
-        return profiles
-
-    def close_connection(self):
-        if self.engine:
-            self.engine.dispose()
-
-    def start_chat(self, user_id):
-        self.user_preferences = {}
-        self.user_id = user_id
-        return "Bonjour! Je suis votre assistant beauté. Quels sont vos intérêts en matière de recommandation de produits?"
-
-    def handle_message(self, message):
-        steps = [
+                                     'type_peau', 'type_cheveux', 'marque_tunisiennes_util',
+                                     'pref_internationale', 'local_VS_inter', 'type_achat', 'critere_achat']
+        self.steps = [
             'interet_rec', 'objectif_cos', 'probleme_peau', 'preference_cos',
             'type_peau', 'type_cheveux', 'marque_tunisiennes_util', 'pref_internationale',
             'local_VS_inter', 'type_achat', 'critere_achat', 'budget'
         ]
-        questions = [
+        self.questions = [
+            "Quel est votre intérêt principal en matière de recommandation de produits?",
             "Quel est votre objectif cosmétique principal?",
             "Avez-vous des problèmes de peau spécifiques?",
             "Quelle est votre préférence en matière de cosmétiques?",
             "Quel est votre type de peau?",
             "Quel est votre type de cheveux?",
-            "Utilisez-vous des marques tunisiennes?",
+            "Utilisez-vous des marques tunisiennes? Si oui, lesquelles?",
             "Préférez-vous les marques internationales?",
             "Préférez-vous les produits locaux ou internationaux?",
             "Quel est votre type d'achat?",
             "Quel est votre critère d'achat principal?",
             "Quel est votre budget? (Faible, Moyen, Élevé)"
         ]
+        self.encoder = None # Initialiser l'encodeur
 
-        for step, question in zip(steps, questions):
-            if step not in self.user_preferences:
-                self.user_preferences[step] = message
-                return question
+    def _create_engine(self):
+        """Crée le moteur de connexion à la base de données."""
+        connection_string = f"mssql+pyodbc://@{self.server}/{self.database}?driver={self.driver}&trusted_connection=yes"
+        return create_engine(connection_string)
 
-        self.user_preferences['budget'] = message
-        recommended_products = self._recommend_from_preferences()
-        if not recommended_products.empty:
-            result = recommended_products[['Product_Name', 'Brand_Name', 'Unit_Price']].head(5)
-            lines = [f"- {row['Product_Name']} ({row['Brand_Name']}) - {row['Unit_Price']} TND" for _, row in result.iterrows()]
-            return "Voici mes recommandations basées sur vos préférences :\n" + "\n".join(lines)
+    def _load_users_data(self):
+        """Charge les données des utilisateurs depuis la base de données."""
+        return pd.read_sql("SELECT * FROM dbo.Dim_rec", self.engine)
+
+    def _load_products_data(self):
+        """Charge les données des produits depuis la base de données."""
+        return pd.read_sql("SELECT * FROM dbo.Dim_Products", self.engine)
+
+    def handle_message(self, message, current_step_index, user_preferences):
+        """Gère la réponse de l'utilisateur et détermine la prochaine étape."""
+        step = self.steps[current_step_index]
+        user_preferences[step] = message
+        next_step_index = current_step_index + 1
+
+        if next_step_index < len(self.questions):
+            response = self.questions[next_step_index]
+            return response, next_step_index, user_preferences
         else:
-            return "Désolé, je n'ai pas pu trouver de produits correspondant à vos préférences."
+            recommendations = self._recommend_products_from_responses(user_preferences)
+            return recommendations, next_step_index, user_preferences
 
-    def _recommend_from_preferences(self):
-        if not self.user_preferences:
-            return pd.DataFrame()
+    def _encode_preferences(self, data):
+        """Encode les préférences d'un utilisateur unique."""
+        df = pd.DataFrame([data])[self.preference_features].fillna("Inconnu")
+        if self.encoder is None:
+            self.encoder = OneHotEncoder(handle_unknown='ignore')
+            encoded_data = self.encoder.fit_transform(df).toarray()
+        else:
+            encoded_data = self.encoder.transform(df).toarray()
+        return encoded_data
 
-        user_input_df = pd.DataFrame([self.user_preferences])
-        all_users_df = self.df_users[self.preference_features].fillna("Inconnu")
-        encoder = OneHotEncoder()
-        encoded_all_users = encoder.fit_transform(all_users_df).toarray()
-        encoded_input = encoder.transform(user_input_df).toarray()
+    def _encode_all_user_preferences(self):
+        """Encode les préférences de tous les utilisateurs."""
+        all_users_preferences = self.df_users[self.preference_features].fillna("Inconnu")
+        if self.encoder is None:
+            self.encoder = OneHotEncoder(handle_unknown='ignore')
+            encoded_all_users = self.encoder.fit_transform(all_users_preferences).toarray()
+        else:
+            encoded_all_users = self.encoder.transform(all_users_preferences).toarray()
+        return encoded_all_users
 
-        kmeans = KMeans(n_clusters=self.n_preference_clusters, random_state=42)
-        kmeans.fit(encoded_all_users)
-        cluster_id = kmeans.predict(encoded_input)[0]
+    def _recommend_products_from_responses(self, user_preferences):
+        """Recommande des produits en fonction des préférences de l'utilisateur."""
+        user_encoded_preferences = self._encode_preferences(user_preferences)
+        encoded_all_users = self._encode_all_user_preferences()
 
-        return self.recommendations_preference_budget.get(cluster_id, pd.DataFrame())
+        if encoded_all_users.shape[0] > 0:
+            similarities = cosine_similarity(user_encoded_preferences, encoded_all_users)[0]
+            similar_user_indices = np.argsort(similarities)[::-1]
+        else:
+            print("Avertissement : Aucune donnée utilisateur disponible pour le calcul de similarité.")
+            similar_user_indices = []
 
-    def get_preferences(self):
-        return self.user_preferences
+        print("Préférences Utilisateur Encodées :", user_encoded_preferences)
+        print("Similarités :", similarities if encoded_all_users.shape[0] > 0 else "N/A")
+        print("Indices Utilisateurs Similaires :", similar_user_indices)
+
+        recommended_products = pd.DataFrame()
+        budget = user_preferences.get('budget')
+        print("Budget Utilisateur :", budget)
+
+        min_price, max_price = 0, float('inf')
+        if budget == "Faible":
+            max_price = 35  # Élargissement léger
+        elif budget == "Moyen":
+            min_price = 25  # Élargissement léger
+            max_price = 90  # Élargissement léger
+        elif budget == "Élevé":
+            min_price = 70
+
+        top_n = min(10, len(similar_user_indices)) # Considérer plus d'utilisateurs similaires
+        for index in similar_user_indices[:top_n]:
+            try:
+                similar_user = self.df_users.iloc[index]
+                purchase_history = similar_user['Purchase_History']
+                if pd.notna(purchase_history):
+                    product_ids = purchase_history.split(',')
+                    favorite_categories = self.df_products[self.df_products['Product_PK'].isin(product_ids)]['Category_FK'].value_counts().nlargest(5).index.tolist() # Considérer plus de catégories
+                    print(f"Utilisateur Similaire {index} - Catégories Favorites :", favorite_categories)
+                    for category_fk in favorite_categories:
+                        category_products = self.df_products[
+                            (self.df_products['Category_FK'] == category_fk) &
+                            (self.df_products['Unit_Price'] >= min_price) &
+                            (self.df_products['Unit_Price'] <= max_price)
+                        ].head(3) # Prendre plus de produits par catégorie
+                        print(f"Produits Catégorie {category_fk} :", category_products)
+                        recommended_products = pd.concat([recommended_products, category_products])
+            except IndexError:
+                print(f"Avertissement : Index {index} hors limites pour df_users.")
+                continue
+
+        recommended_products = recommended_products.drop_duplicates(subset=['Product_PK'])
+
+        if recommended_products.empty:
+            print("Aucune recommandation basée sur des utilisateurs similaires. Essai avec les produits populaires dans le budget (élargi).")
+            min_price_relaxed = max(0, min_price - 15) # Élargissement plus important
+            max_price_relaxed = max_price + 15 # Élargissement plus important
+            popular_categories_in_budget = self.df_products[
+                (self.df_products['Unit_Price'] >= min_price_relaxed) &
+                (self.df_products['Unit_Price'] <= max_price_relaxed)
+            ]['Category_FK'].value_counts().nlargest(7).index.tolist() # Considérer plus de catégories populaires
+            print("Catégories Populaires dans le Budget (Élargi) :", popular_categories_in_budget)
+            for category_fk in popular_categories_in_budget:
+                category_products = self.df_products[
+                    (self.df_products['Category_FK'] == category_fk) &
+                    (self.df_products['Unit_Price'] >= min_price_relaxed) &
+                    (self.df_products['Unit_Price'] <= max_price_relaxed)
+                ].head(3) # Prendre plus de produits par catégorie populaire
+                print(f"Produits Catégorie Populaire {category_fk} :", category_products)
+                recommended_products = pd.concat([recommended_products, category_products])
+            recommended_products = recommended_products.drop_duplicates(subset=['Product_PK'])
+
+        if recommended_products.empty:
+            print("Aucune recommandation trouvée. Retour des produits les plus récents.")
+            # Logique de recommandation par défaut : les produits les plus récents
+            most_recent_products = self.df_products.sort_values(by='Product_PK', ascending=False).head(5)
+            final_recommendations = most_recent_products[['Product_Name', 'Brand_Name', 'Unit_Price']]
+        else:
+            final_recommendations = recommended_products[['Product_Name', 'Brand_Name', 'Unit_Price']].head(5)
+
+        print("Recommandations Finales :", final_recommendations)
+        return final_recommendations
+
+
+
+    def close_connection(self):
+        """Ferme la connexion à la base de données."""
+        if self.engine:
+            self.engine.dispose()

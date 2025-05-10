@@ -9,7 +9,7 @@ from .config import Config
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": "*"}}, )
 
     # Connection config
     app.config.from_object(Config)
@@ -53,6 +53,9 @@ def create_app():
     from .routes.fiabilite_routes import ml_bp
     app.register_blueprint(ml_bp)
 
+   
+ # In your main Flask app file (e.g., app.py)
+    app.secret_key = 'BeautyFlow'
 
 
     # Configuration de JWT

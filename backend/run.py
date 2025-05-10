@@ -2,7 +2,8 @@ from app import create_app  # Importe la fonction create_app de ton application 
 
 # Créer l'application Flask en appelant la fonction create_app
 app = create_app()
-
+# In your main Flask app file (e.g., app.py)
+app.secret_key = 'BeautyFlow'
 if __name__ == '__main__':
     # Exécution de l'application avec les options suivantes :
     # - debug=True pour activer le mode débogage (affichage d'erreurs détaillées)
