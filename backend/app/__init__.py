@@ -51,10 +51,15 @@ def create_app():
     from .routes.recommander_routes import recommender_bp
     app.register_blueprint(recommender_bp, url_prefix='/recommender')
 
- 
 
     from .routes.fiabilite_routes import ml_bp
     app.register_blueprint(ml_bp)
+    
+    from app.routes.formulary_routes import formulary_bp
+    app.register_blueprint(formulary_bp)
+    
+    from app.routes.CusPreferences_routes import customer_preferences_bp
+    app.register_blueprint(customer_preferences_bp)
 
 
 

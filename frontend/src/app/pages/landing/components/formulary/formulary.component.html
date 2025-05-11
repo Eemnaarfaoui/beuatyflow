@@ -1,0 +1,54 @@
+<div class="newsletter-card">
+  <h2>Join Our Newsletter</h2>
+  <p class="description">
+    Subscribe to our newsletter for skincare tips, exclusive product recommendations, and more.
+  </p>
+
+  <form class="form-content" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="interet_rec">Interests:</label>
+      <input id="interet_rec" [(ngModel)]="formData.interet_rec" name="interet_rec" required />
+    </div>
+
+    <div class="form-group">
+      <label for="objectif_cos">Goal:</label>
+      <input id="objectif_cos" [(ngModel)]="formData.objectif_cos" name="objectif_cos" required />
+    </div>
+
+    <div class="form-group">
+      <label for="probleme_peau">Skin Problem:</label>
+      <select id="probleme_peau" [(ngModel)]="formData.probleme_peau" name="probleme_peau">
+        <option value="">Select one</option>
+        <option value="acne">Acne</option>
+        <option value="dry">Dryness</option>
+        <option value="oil">Oily skin</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="preference_cos">Preference:</label>
+      <select id="preference_cos" [(ngModel)]="formData.preference_cos" name="preference_cos">
+        <option value="">Select one</option>
+        <option value="natural">Natural</option>
+        <option value="organic">Organic</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="type_peau">Skin Type:</label>
+      <select id="type_peau" [(ngModel)]="formData.type_peau" name="type_peau">
+        <option value="">Select one</option>
+        <option value="oily">Oily</option>
+        <option value="dry">Dry</option>
+        <option value="combination">Combination</option>
+      </select>
+    </div>
+
+    <button class="submit-btn" type="submit">Subscribe</button>
+
+    <div class="success-message" *ngIf="successMessage" @fadeSlideIn>
+      {{ successMessage }}
+    </div>
+    
+  </form>
+</div>
