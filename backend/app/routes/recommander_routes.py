@@ -1,45 +1,40 @@
-from flask import Blueprint, jsonify, request, g
-from ..ml.recommender import Recommender  
+from flask import Blueprint, jsonify, request, g, session
 
 recommender_bp = Blueprint('recommender', __name__)
 
-@recommender_bp.route('/chat/<int:user_id>/start', methods=['GET'])
-def start_chat(user_id):
-    response = g.recommender.start_chat(user_id)
+@recommender_bp.route('/chat/start', methods=['GET'])
+def start_chat():
+    session['current_step_index'] = 0
+    session['user_preferences'] = {}
+    session.modified = True  # Assure que la session est bien mise à jour
+    response = g.recommender.start_chat()
     return jsonify({'response': response})
 
-@recommender_bp.route('/chat/<int:user_id>/message', methods=['POST'])
-def handle_chat_message(user_id):
-    message = request.get_json()['message']
-    response = g.recommender.handle_message(message)
-    return jsonify({'response': response})
 
-@recommender_bp.route('/chat/<int:user_id>/preferences', methods=['GET'])
-def get_user_preferences(user_id):
-    preferences = g.recommender.get_preferences()
-    return jsonify(preferences)
+@recommender_bp.route("/chat/message", methods=["POST"])
+def handle_chat_message():
+    data = request.json
+    message = data.get("message")
+    current_step_index = data.get("current_step_index", 0)
+    user_preferences = data.get("user_preferences", {})
 
-@recommender_bp.route('/utilisateur/<int:user_id>', methods=['GET'])
-def get_user_recommendations(user_id):
-    recommendations_df = g.recommender.get_recommendations_for_user(user_id)
-    recommendations = recommendations_df.to_dict(orient='records')
-    return jsonify(recommendations)
+    print(f"🔄 Received message: {message}")
+    print(f"📍 Current step index BEFORE processing: {current_step_index}")
 
-@recommender_bp.route('/utilisateur/<int:user_id>/budget', methods=['GET'])
-def get_user_budget_route(user_id):
-    budget = g.recommender.get_user_budget(user_id)
-    if budget:
-        return jsonify({'user_id': user_id, 'budget': budget})
-    return jsonify({'message': 'Utilisateur non trouvé'}), 404
+    response, next_step_index, updated_preferences = g.recommender.handle_message(
+        message, current_step_index, user_preferences
+    )
 
-@recommender_bp.route('/utilisateur/<int:user_id>/cluster', methods=['GET'])
-def get_user_cluster_route(user_id):
-    cluster = g.recommender.get_user_preference_cluster(user_id)
-    if cluster is not None:
-        return jsonify({'user_id': user_id, 'preference_cluster': int(cluster)})
-    return jsonify({'message': 'Utilisateur non trouvé'}), 404
+    print(f"➡️ New step index AFTER processing: {next_step_index}")
 
-@recommender_bp.route('/clusters/profils', methods=['GET'])
-def get_cluster_profiles_route():
-    profiles = g.recommender.get_cluster_profiles()
-    return jsonify(profiles)
+    return jsonify({
+        "response": response,
+        "next_step_index": next_step_index,
+        "user_preferences": updated_preferences,
+    })
+@recommender_bp.route('/get_options/<question_id>', methods=['GET'])
+def get_options(question_id):
+    options = g.recommender.get_question_answers(int(question_id))
+    if options:
+        return jsonify({'options': options})
+    return jsonify({'error': 'Question non trouvée'}), 404
