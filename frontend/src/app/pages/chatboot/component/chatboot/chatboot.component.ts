@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
@@ -10,6 +10,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
   styleUrls: ['./chatboot.component.scss']
 })
 export class ChatbootComponent implements OnInit {
+  @ViewChild('chatBox') chatBox: ElementRef | undefined;
   chatMessages: { sender: string, text: string }[] = [];
   currentStepIndex: number = 0;
   userPreferences: { [key: string]: string } = {};
@@ -39,13 +40,14 @@ export class ChatbootComponent implements OnInit {
 
   selectOption(option: string): void {
     this.chatMessages.push({ sender: 'user', text: option });
-  
     const requestData = {
       message: option,
       current_step_index: this.currentStepIndex,
       user_preferences: this.userPreferences
+      
     };
-  
+    this.scrollToBottom();
+
     this.http.post<{ response: string, next_step_index: number, user_preferences: any }>(
       'http://localhost:5000/recommender/chat/message',
       requestData
@@ -53,17 +55,35 @@ export class ChatbootComponent implements OnInit {
       this.addAssistantMessage(res.response);
       this.currentStepIndex = res.next_step_index;
       this.userPreferences = res.user_preferences;
-  
+      this.scrollToBottom();
+    
       if (this.currentStepIndex === 12) {
         this.addAssistantMessage("Merci d'avoir complété le questionnaire !");
       }
+      
+      // Affiche les options avec animation
+      setTimeout(() => {
+        const optionsBox = document.querySelector('.options-box');
+        if (optionsBox) {
+          optionsBox.classList.add('visible');
+        }
+      }, 200); // Animation après une courte pause
     });
   }
   
 
   addAssistantMessage(message: string): void {
     this.chatMessages.push({ sender: 'bot', text: message });
+    this.scrollToBottom();
   }
+
+  scrollToBottom(): void {
+    const chatBox = document.querySelector('.chat-box');
+    if (chatBox) {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  }
+  
 
   get currentOptions(): string[] {
     return this.optionsMap[this.currentStepIndex + 1] || [];

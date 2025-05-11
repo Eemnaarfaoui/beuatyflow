@@ -1,5 +1,5 @@
 <div class="chat-container">
-  <div class="chat-box">
+  <div class="chat-box" #chatBox>
     <div *ngFor="let message of chatMessages" class="message" [ngClass]="{'assistant': message.sender === 'bot', 'user': message.sender === 'user'}">
       <p>{{ message.text }}</p>
     </div>
