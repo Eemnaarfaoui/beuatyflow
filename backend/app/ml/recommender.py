@@ -70,7 +70,6 @@ class Recommender:
         self.kmeans = KMeans(n_clusters=self.n_preference_clusters, random_state=42)
         self.df_users['preference_cluster'] = self.kmeans.fit_predict(user_encoded)
 
-
     def _generate_recommendations(self):
         recommendations = {}
         self._cluster_users_by_preference()
@@ -138,7 +137,6 @@ class Recommender:
     def get_question_answers(self, question_id):
         return self.questions_and_answers.get(question_id, [])
 
-
     def start_chat(self):
         self.user_preferences = {}
         self.current_step_index = 0
@@ -180,11 +178,25 @@ class Recommender:
         encoded_input = self.encoder.transform(user_input_df).toarray()
         cluster_id = self.kmeans.predict(encoded_input)[0]
 
-        return self.recommendations_preference_budget.get(cluster_id, pd.DataFrame())
+        # Sélection des produits recommandés pour ce cluster
+        recommendations = self.recommendations_preference_budget.get(cluster_id, pd.DataFrame())
+
+        # Filtrage en fonction du budget
+        if 'budget' in self.user_preferences:
+            budget = self.user_preferences['budget']
+            recommendations = recommendations[recommendations['Unit_Price'].apply(self._filter_by_budget, args=(budget,))]
+
+        return recommendations
+
+    def _filter_by_budget(self, price, budget):
+        """ Filtre les produits en fonction du budget donné. """
+        if budget == "Faible" and price <= 20:
+            return True
+        elif budget == "Moyen" and 20 < price <= 50:
+            return True
+        elif budget == "Élevé" and price > 50:
+            return True
+        return False
 
     def get_preferences(self):
         return self.user_preferences
-    
-
-
-

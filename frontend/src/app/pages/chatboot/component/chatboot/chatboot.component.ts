@@ -39,13 +39,13 @@ export class ChatbootComponent implements OnInit {
 
   selectOption(option: string): void {
     this.chatMessages.push({ sender: 'user', text: option });
-
+  
     const requestData = {
       message: option,
       current_step_index: this.currentStepIndex,
       user_preferences: this.userPreferences
     };
-
+  
     this.http.post<{ response: string, next_step_index: number, user_preferences: any }>(
       'http://localhost:5000/recommender/chat/message',
       requestData
@@ -53,12 +53,13 @@ export class ChatbootComponent implements OnInit {
       this.addAssistantMessage(res.response);
       this.currentStepIndex = res.next_step_index;
       this.userPreferences = res.user_preferences;
-
+  
       if (this.currentStepIndex === 12) {
         this.addAssistantMessage("Merci d'avoir complété le questionnaire !");
       }
     });
   }
+  
 
   addAssistantMessage(message: string): void {
     this.chatMessages.push({ sender: 'bot', text: message });
