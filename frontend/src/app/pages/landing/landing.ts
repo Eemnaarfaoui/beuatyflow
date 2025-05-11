@@ -11,12 +11,13 @@ import { HighlightsWidget } from './components/highlightswidget';
 import { PricingWidget } from './components/pricingwidget';
 import { FooterWidget } from './components/footerwidget';
 import { FormularyComponent } from './components/formulary/formulary.component';
+import { ChatbootComponent } from "../chatboot/component/chatboot/chatboot.component";
 
 
 @Component({
     selector: 'app-landing',
     standalone: true,
-    imports: [RouterModule, TopbarWidget, HeroWidget, FeaturesWidget, HighlightsWidget, PricingWidget, FooterWidget, RippleModule, StyleClassModule, ButtonModule, DividerModule, FormularyComponent],
+    imports: [RouterModule, TopbarWidget, HeroWidget, FeaturesWidget, HighlightsWidget, PricingWidget, FooterWidget, RippleModule, StyleClassModule, ButtonModule, DividerModule, FormularyComponent, ChatbootComponent],
     template: `
         <div class="bg-surface-0 dark:bg-surface-900">
             <div id="home" class="landing-wrapper overflow-hidden">
@@ -36,6 +37,7 @@ import { FormularyComponent } from './components/formulary/formulary.component';
                         <app-formulary></app-formulary>
                     </div>
                 </div>
+                <app-chatboot></app-chatboot>
                 <footer-widget />
             </div>
         </div>

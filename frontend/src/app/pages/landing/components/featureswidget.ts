@@ -5,7 +5,7 @@ import { ChatbootComponent } from '../../chatboot/component/chatboot/chatboot.co
 @Component({
   selector: 'features-widget',
   standalone: true,
-  imports: [CommonModule, ChatbootComponent],
+  imports: [CommonModule],
   template: `
   <div id="features" class="py-6 px-6 lg:px-20 mt-8 mx-0 lg:mx-20">
     <div class="grid grid-cols-12 gap-4 justify-center">
@@ -13,7 +13,6 @@ import { ChatbootComponent } from '../../chatboot/component/chatboot/chatboot.co
         <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">Powerful Features for Your Supply Chain</div>
         <span class="text-muted-color text-2xl">Enhance operational efficiency, optimize decision-making, and leverage data insights</span>
       </div>
-      <app-chatboot></app-chatboot>
       <!-- Easy to Use -->
       <div class="col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0">
         <div style="height: 160px; padding: 2px; border-radius: 10px; background: linear-gradient(90deg, rgba(253, 228, 165, 0.2), rgba(187, 199, 205, 0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(187, 199, 205, 0.2))">
@@ -136,6 +135,6 @@ import { ChatbootComponent } from '../../chatboot/component/chatboot/chatboot.co
     </div>
   </div>
   `
-  
+
 })
-export class FeaturesWidget {}
+export class FeaturesWidget { }
