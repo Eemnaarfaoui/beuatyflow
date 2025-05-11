@@ -44,7 +44,7 @@ import { DashboardService } from '../services/dashboard.services';
                         <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{stats?.total_products}} products</div>
                     </div>
                     <div class="flex items-center justify-center bg-cyan-100 dark:bg-cyan-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
-                        <i class="pi pi-users text-cyan-500 !text-xl"></i>
+                        <i class="pi pi-barcode text-cyan-500 !text-xl"></i>
                     </div>
                 </div>
                 <span class="text-primary font-medium">520 </span>
@@ -59,7 +59,7 @@ import { DashboardService } from '../services/dashboard.services';
                         <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{stats?.total_shops}} shops</div>
                     </div>
                     <div class="flex items-center justify-center bg-purple-100 dark:bg-purple-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
-                        <i class="pi pi-comment text-purple-500 !text-xl"></i>
+                        <i class="pi pi-shop text-purple-500 !text-xl"></i>
                     </div>
                 </div>
                 <span class="text-primary font-medium">85 </span>
