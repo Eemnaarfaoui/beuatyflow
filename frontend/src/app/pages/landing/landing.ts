@@ -17,7 +17,7 @@ import { ChatbootComponent } from "../chatboot/component/chatboot/chatboot.compo
 @Component({
     selector: 'app-landing',
     standalone: true,
-    imports: [RouterModule, TopbarWidget, HeroWidget, FeaturesWidget, HighlightsWidget, PricingWidget, FooterWidget, RippleModule, StyleClassModule, ButtonModule, DividerModule, FormularyComponent, ChatbootComponent],
+    imports: [RouterModule, TopbarWidget, HeroWidget, FeaturesWidget, HighlightsWidget,  FooterWidget, RippleModule, StyleClassModule, ButtonModule, DividerModule, FormularyComponent, ChatbootComponent],
     template: `
         <div class="bg-surface-0 dark:bg-surface-900">
             <div id="home" class="landing-wrapper overflow-hidden">
@@ -25,8 +25,8 @@ import { ChatbootComponent } from "../chatboot/component/chatboot/chatboot.compo
                 <hero-widget />
                 <features-widget />
                 <highlights-widget />
-                <pricing-widget />
-                <div class="newsletter-section text-center py-10 px-6 md:px-12 lg:px-32 bg-primary-50 dark:bg-gray-900">
+                
+                <div id ="form" class="newsletter-section text-center py-10 px-6 md:px-12 lg:px-32 bg-primary-50 dark:bg-gray-900">
                     <h2 class="text-2xl md:text-3xl font-semibold text-primary-900 dark:text-white mb-4">
                         Subscribe to our beauty newsletter
                     </h2>

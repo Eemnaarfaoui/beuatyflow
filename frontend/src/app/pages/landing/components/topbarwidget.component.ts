@@ -50,9 +50,10 @@ import { AuthService } from '../../auth/service/auth.service';
                         <span>Highlights</span>
                     </a>
                 </li>
-                <li>
-                    <a (click)="router.navigate(['/landing'], { fragment: 'pricing' })" pRipple class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl">
-                        <span>Pricing</span>
+              
+                 <li>
+                    <a (click)="router.navigate(['/landing'], { fragment: 'form' })" pRipple class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl">
+                        <span>Preferences Form</span>
                     </a>
                 </li>
             </ul>
