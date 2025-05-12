@@ -112,6 +112,8 @@ export class AppConfigurator {
 
     ngOnInit() {
         if (isPlatformBrowser(this.platformId)) {
+            const defaultPrimary = 'blue'; // Set your default primary color here
+            this.layoutService.layoutConfig.update((state) => ({ ...state, primary: defaultPrimary }));
             this.onPresetChange(this.layoutService.layoutConfig().preset);
         }
     }

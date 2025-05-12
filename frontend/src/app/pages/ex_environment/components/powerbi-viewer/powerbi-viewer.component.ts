@@ -7,7 +7,7 @@ import { SafePipe } from '../pipes/safe.pipe';
   standalone: true,
   imports: [CommonModule, SafePipe],
   template: `
-    <div class="powerbi-container">
+    <div class="powerbi-container-ex-environment">
       <iframe 
         *ngIf="embedUrl"
         [src]="embedUrl | safe"
@@ -21,9 +21,9 @@ import { SafePipe } from '../pipes/safe.pipe';
     </div>
   `,
   styles: [`
-    .powerbi-container {
+    .powerbi-container-ex-environment {
       width: 100%;
-      height: 100%;
+     height: 700px; overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;

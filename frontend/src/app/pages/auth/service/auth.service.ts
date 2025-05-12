@@ -30,8 +30,12 @@ export class AuthService {
   logout() {
     localStorage.removeItem(this.tokenKey);
     this.isLoggedIn$.next(false);
-    this.router.navigate(['/landing']);
+    window.location.href = "https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:4200/landing";
+
   }
+
+
+  
 
   hasToken(): boolean {
     return !!localStorage.getItem(this.tokenKey);

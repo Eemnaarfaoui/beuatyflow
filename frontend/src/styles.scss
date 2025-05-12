@@ -3,3 +3,12 @@
 @use './assets/layout/layout.scss';
 @use 'primeicons/primeicons.css';
 @use './assets/demo/demo.scss';
+
+.powerbi-container {
+    width: 100%;
+    height: 730px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

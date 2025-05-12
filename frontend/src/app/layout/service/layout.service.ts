@@ -28,8 +28,8 @@ interface MenuChangeEvent {
 export class LayoutService {
     _config: layoutConfig = {
         preset: 'Aura',
-        primary: 'emerald',
-        surface: null,
+        primary: 'blue',  // ensure blue is set as default
+        surface: 'slate', // adding default surface
         darkTheme: false,
         menuMode: 'static'
     };
@@ -79,6 +79,9 @@ export class LayoutService {
     private initialized = false;
 
     constructor() {
+        // Initialize default config
+        this.layoutConfig.set(this._config);
+
         effect(() => {
             const config = this.layoutConfig();
             if (config) {

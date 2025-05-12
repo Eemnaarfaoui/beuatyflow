@@ -26,11 +26,11 @@ import { ChatbootComponent } from "../chatboot/component/chatboot/chatboot.compo
                 <features-widget />
                 <highlights-widget />
                 
-                <div id ="form" class="newsletter-section text-center py-10 px-6 md:px-12 lg:px-32 bg-primary-50 dark:bg-gray-900">
-                    <h2 class="text-2xl md:text-3xl font-semibold text-primary-900 dark:text-white mb-4">
+                <div id ="form" class="newsletter-section text-center py-10 px-6 md:px-12 lg:px-32 dark:bg-gray-900" style="background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), radial-gradient(77.36% 256.97% at 77.36% 57.52%, rgb(175, 231, 239) 0%, rgb(195, 227, 250) 100%); clip-path: ellipse(150% 87% at 93% 13%)">
+                    <h2 class="text-2xl md:text-3xl font-semibold  dark:text-white mb-4" style="color:rgb(11, 49, 110);">
                         Subscribe to our beauty newsletter
                     </h2>
-                    <p class="text-sm md:text-base text-gray-600 dark:text-gray-300 mb-6">
+                    <p class="text-sm md:text-base dark:text-gray-300 mb-6" style="color:rgb(11, 49, 110);">
                         Stay updated with skincare tips, exclusive product recommendations, and more.
                     </p>
                     <div class="max-w-3xl mx-auto">

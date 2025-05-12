@@ -45,20 +45,7 @@ import { AuthService } from '../../pages/auth/service/auth.service';
                 <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
                     <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
                 </button>
-                <div class="relative">
-                    <button
-                        class="layout-topbar-action layout-topbar-action-highlight"
-                        pStyleClass="@next"
-                        enterFromClass="hidden"
-                        enterActiveClass="animate-scalein"
-                        leaveToClass="hidden"
-                        leaveActiveClass="animate-fadeout"
-                        [hideOnOutsideClick]="true"
-                    >
-                        <i class="pi pi-palette"></i>
-                    </button>
-                    <app-configurator />
-                </div>
+                 <app-configurator />
             </div>
 
             <button class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next" enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden" leaveActiveClass="animate-fadeout" [hideOnOutsideClick]="true">
@@ -66,10 +53,13 @@ import { AuthService } from '../../pages/auth/service/auth.service';
             </button>
 
             <div class="layout-topbar-menu hidden lg:block">
-                <div class="layout-topbar-menu-content">
-               
+                <div class="layout-topbar-menu-content ">
+                                   
+                    <span class="p-0 flex items-center font-bold" style="color: #3b82f6;">{{userRole | titlecase}} View{{" "}} </span>
+                    <span class="p-0 flex items-center font-bold">|</span>
                     <button class="layout-topbar-action" severity="secondary" (click)="toggleDataTable(opUser, $event)">
                     <i class="pi pi-user"></i>
+                    
                     </button>
                     <p-popover #opUser id="overlay_panel" [style]="{ width: '150px' }">
                     <button type="button" class="flex items-center gap-2 justify-start" (click)="onLogout()">
@@ -86,12 +76,15 @@ import { AuthService } from '../../pages/auth/service/auth.service';
 })
 export class AppTopbar {
     items!: MenuItem[];
+    userRole: string | undefined = "Admin";
 
     constructor(
         public layoutService: LayoutService,
         private authService: AuthService
     ) { }
-
+    ngOnInit() {
+        this.userRole = this.authService.getUserRole()?.toLowerCase();
+    }
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
     }

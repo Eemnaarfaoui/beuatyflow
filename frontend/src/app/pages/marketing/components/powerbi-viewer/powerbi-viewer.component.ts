@@ -23,7 +23,7 @@ import { SafePipe } from '../pipes/safe.pipe';
   styles: [`
     .powerbi-container {
       width: 100%;
-      height: 100%;
+      height: 730px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -32,5 +32,5 @@ import { SafePipe } from '../pipes/safe.pipe';
 })
 export class PowerBIViewerComponent {
   //@Input() embedUrl: string | null = ''; // ✅ Correct: receive the URL from parent
- public embedUrl= 'https://app.powerbi.com/reportEmbed?reportId=2b1e2547-a043-443e-85e7-02a5406906aa&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730'
+ public embedUrl= 'https://app.powerbi.com/reportEmbed?reportId=f6e55757-1a41-44db-ac19-94f030d27931&autoAuth=true&ctid=604f1a96-cbe8-43f8-abbf-f8eaf5d85730'
 }
