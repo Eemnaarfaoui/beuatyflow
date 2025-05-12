@@ -7,7 +7,7 @@
   margin: 0;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, #aed1be, #bfdac6, #daf3dc);
+  background: linear-gradient(135deg, #584ace, #241864, #5ea8ec);
   background-size: 400% 400%;
   animation: gradientAnimation 6s ease infinite;
   z-index: 1000;
@@ -134,10 +134,12 @@ button {
 
 button {
   padding: 12px;
-  font-size: 16px;
-  background: linear-gradient(145deg, #2f4b37, #86c28a);
+  font-size: 13px;
+  background: linear-gradient(145deg, #2a3d66, #5ca9f4); /* Blue gradient base */
   border: none;
-  border-radius: 30px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px; /* Space between buttons */
   color: white;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.2s ease;
@@ -145,18 +147,18 @@ button {
 
   &:hover {
     transform: translateY(-5px);
-    background: linear-gradient(145deg, #4caf50, #8bc34a); /* Vert plus lumineux au survol */
+    background: linear-gradient(145deg, #2196f3, #64b5f6); /* Lighter blue on hover */
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
   }
 
   &:active {
     transform: translateY(2px);
-    background: linear-gradient(145deg, #388e3c, #66bb6a); /* Vert plus foncé au clic */
+    background: linear-gradient(145deg, #1565c0, #42a5f5); /* Darker blue on click */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+    box-shadow: 0 0 5px rgba(33, 150, 243, 0.7); /* Blue glow on focus */
   }
 }
