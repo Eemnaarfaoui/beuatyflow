@@ -78,7 +78,7 @@ export class ChatbootComponent implements OnInit {
   }
 
   scrollToBottom(): void {
-    const chatBox = document.querySelector('.chat-box');
+    const chatBox = document.querySelector('chat-box');
     if (chatBox) {
       chatBox.scrollTop = chatBox.scrollHeight;
     }
