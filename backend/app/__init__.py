@@ -10,6 +10,8 @@ from .config import Config
 def create_app():
     app = Flask(__name__)
     CORS(app, resources={r"/*": {"origins": "*"}})
+    
+    app.config['SECRET_KEY'] = 'BeautyFlow'  # Clé secrète pour les sessions Flask
 
     # Connection config
     app.config.from_object(Config)

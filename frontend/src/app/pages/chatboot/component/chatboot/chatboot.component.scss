@@ -7,14 +7,29 @@
   margin: 0;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  background-color: white;
+  background: linear-gradient(135deg, #584ace, #241864, #5ea8ec);
+  background-size: 400% 400%;
+  animation: gradientAnimation 6s ease infinite;
   z-index: 1000;
   display: flex;
   flex-direction: column;
   max-height: 500px;
   overflow: hidden;
-  border: 1px solid #e0e0e0; /* Ajout d'une bordure discrète */
+  border: 1px solid #e0e0e0;
 }
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 
 .chat-box {
   flex-grow: 1;
@@ -115,4 +130,35 @@ button {
   background-color: #ffebee;
   color: #d32f2f;
   border-color: #ef9a9a;
+}
+
+button {
+  padding: 12px;
+  font-size: 13px;
+  background: linear-gradient(145deg, #2a3d66, #5ca9f4); /* Blue gradient base */
+  border: none;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px; /* Space between buttons */
+  color: white;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.2s ease;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: translateY(-5px);
+    background: linear-gradient(145deg, #2196f3, #64b5f6); /* Lighter blue on hover */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(2px);
+    background: linear-gradient(145deg, #1565c0, #42a5f5); /* Darker blue on click */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(33, 150, 243, 0.7); /* Blue glow on focus */
+  }
 }
